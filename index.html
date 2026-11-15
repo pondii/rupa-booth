@@ -4,134 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <title>Rupa Booth</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/base.css?v=20261116a" />
+  <link rel="stylesheet" href="css/photobooth.css?v=20261116a" />
+  <link rel="stylesheet" href="css/dock-windows.css?v=20261116a" />
+  <link rel="stylesheet" href="css/share-qr.css?v=20261116a" />
+  <link rel="stylesheet" href="css/responsive.css?v=20261116a" />
 </head>
 <body>
   <div id="app">
     <div id="windows"></div>
-
-    <!-- Wallpaper Picker App Window -->
-    <div id="wallWin" class="window mac-win wall-win" hidden>
-      <div class="mac-sidebar">
-        <header class="titlebar mac-sb-top">
-          <div class="lights">
-            <button type="button" class="light close" id="wallClose" title="Close" aria-label="Close"></button>
-            <button type="button" class="light min" id="wallMin" title="Minimize" aria-label="Minimize"></button>
-            <button type="button" class="light max disabled" aria-hidden="true" tabindex="-1"></button>
-          </div>
-        </header>
-
-        <div class="mac-sb-preview">
-          <div id="wallMiniStage" class="mini-desktop">
-            <span class="mini-win"><i></i><i></i><i></i></span>
-            <span class="mini-dock"></span>
-          </div>
-          <span class="mini-cap">Desktop Preview</span>
-        </div>
-
-        <div class="mac-sb-label">Source</div>
-        <div class="wall-tabs" data-tab="0" role="tablist" aria-label="Wallpaper source">
-          <span class="ind"></span>
-          <button type="button" class="wall-tab active" data-tab="color" role="tab" aria-selected="true" title="Color">
-            <i class="sb-ico sb-color"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></i><span>Color</span>
-          </button>
-          <button type="button" class="wall-tab" data-tab="photo" role="tab" aria-selected="false" title="Photo">
-            <i class="sb-ico sb-photo"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2.2"/><circle cx="9" cy="10" r="1.4" fill="currentColor" stroke="none"/><path d="M5 17l4.5-4.5 3 3 2.5-2.5L19 17"/></svg></i><span>Photo</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="mac-main">
-        <header class="titlebar mac-main-top">
-          <span class="mac-pane-title" id="wallPaneTitle">Wallpaper</span>
-        </header>
-
-        <div class="wall-body">
-          <!-- Color picker panel -->
-          <div class="wall-pane" id="wallColorPane">
-            <div class="sv-wrap">
-              <canvas id="svCanvas" width="360" height="150"></canvas>
-              <span id="svKnob" class="sv-knob"></span>
-            </div>
-
-            <div class="mac-group wall-sliders">
-              <label class="mac-row slider-row">
-                <span title="Hue">H</span>
-                <input id="hueSlider" type="range" min="0" max="360" value="0" class="rng hue" aria-label="Hue" />
-                <output id="hueVal">0°</output>
-              </label>
-              <label class="mac-row slider-row">
-                <span title="Saturation">S</span>
-                <input id="satSlider" type="range" min="0" max="100" value="0" class="rng sat" aria-label="Saturation" />
-                <output id="satVal">0%</output>
-              </label>
-              <label class="mac-row slider-row">
-                <span title="Brightness">B</span>
-                <input id="valSlider" type="range" min="0" max="100" value="100" class="rng val" aria-label="Brightness" />
-                <output id="valVal">100%</output>
-              </label>
-              <div class="mac-row hex-row">
-                <span>Hex</span>
-                <div class="hex-controls">
-                  <span id="colorSwatch" class="color-swatch"></span>
-                  <label class="hex-field">
-                    <input id="hexInput" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex color" />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div class="mac-group swatches-group">
-              <div class="presets" id="colorPresets" aria-label="Color presets"></div>
-            </div>
-          </div>
-
-          <!-- Photo wallpaper panel -->
-          <div class="wall-pane" id="wallPhotoPane" hidden>
-            <div class="wall-drop" id="wallDrop">
-              <img id="wallThumb" alt="" hidden />
-              <div class="wall-drop-msg" id="wallDropMsg">
-                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="M4 18l5.5-5.5 3.5 3.5 2.5-2.5L20 18"/></svg>
-                <span>Drop or upload image</span>
-              </div>
-            </div>
-
-            <input id="wallFile" type="file" accept="image/*" hidden />
-
-            <div class="mac-group">
-              <div class="mac-row">
-                <span>Image</span>
-                <div class="wall-photo-actions">
-                  <button type="button" id="wallUploadBtn" class="btn icon-btn primary" title="Choose Photo" aria-label="Choose Photo">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0l-4 4m4-4l4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-                  </button>
-                  <button type="button" id="wallClearBtn" class="btn icon-btn danger" title="Remove Photo" aria-label="Remove Photo" hidden>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
-                  </button>
-                </div>
-              </div>
-              <div class="mac-row wall-fit-row" id="wallFitRow">
-                <span>Fit</span>
-                <div class="fit-seg">
-                  <button type="button" data-fit="cover" class="active" title="Fill" aria-label="Fill">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 10L6 7m0 0h3m-3 0v3M15 14l3 3m0 0h-3m3 0v-3"/></svg>
-                  </button>
-                  <button type="button" data-fit="contain" title="Fit" aria-label="Fit">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><rect x="7.5" y="8" width="9" height="8" rx="1" fill="currentColor" opacity=".35"/></svg>
-                  </button>
-                  <button type="button" data-fit="100% 100%" title="Stretch" aria-label="Stretch">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 12h10m-10 0l2-2m-2 2l2 2m8-2l-2-2m2 2l-2 2"/></svg>
-                  </button>
-                  <button type="button" data-fit="auto" title="Center" aria-label="Center">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Settings App Window -->
     <div id="settingsWin" class="window mac-win settings-win" hidden>
@@ -149,8 +30,20 @@
           <button type="button" class="sb-nav-btn active" data-sec="layout" role="tab" aria-selected="true">
             <i class="sb-ico sb-layout"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.4"/><rect x="13" y="4" width="7" height="7" rx="1.4"/><rect x="4" y="13" width="7" height="7" rx="1.4"/><rect x="13" y="13" width="7" height="7" rx="1.4"/></svg></i><span>Layout</span>
           </button>
+          <button type="button" class="sb-nav-btn" data-sec="wallpaper" role="tab" aria-selected="false">
+            <i class="sb-ico sb-wall"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.2" r="1.4" fill="currentColor" stroke="none"/><path d="M4 17l4.8-4.5a1.5 1.5 0 0 1 2.1 0l3.1 3 2.2-2a1.5 1.5 0 0 1 2.1 0L20 16.5"/></svg></i><span>Wallpaper</span>
+          </button>
+          <button type="button" class="sb-nav-btn" data-sec="flash" role="tab" aria-selected="false">
+            <i class="sb-ico sb-flash"><svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H12l-1 8.5L19.5 10.5H12z"/></svg></i><span>Flash</span>
+          </button>
+          <button type="button" class="sb-nav-btn" data-sec="timer" role="tab" aria-selected="false">
+            <i class="sb-ico sb-timer"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.8 1.8"/><path d="M9.5 2.5h5"/></svg></i><span>Timer</span>
+          </button>
           <button type="button" class="sb-nav-btn" data-sec="about" role="tab" aria-selected="false">
             <i class="sb-ico sb-about"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.2"/><path d="M6.5 19c.9-2.8 3-4.2 5.5-4.2s4.6 1.4 5.5 4.2"/></svg></i><span>About</span>
+          </button>
+          <button type="button" class="sb-nav-btn" data-sec="reset" role="tab" aria-selected="false">
+            <i class="sb-ico sb-reset"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg></i><span>Reset</span>
           </button>
         </nav>
       </div>
@@ -163,6 +56,180 @@
         <div class="util-body">
           <section class="set-pane" id="setPaneLayout">
             <div id="layoutGrid" class="layout-grid" role="radiogroup" aria-label="Photo Booth window layouts"></div>
+          </section>
+
+          <section class="set-pane" id="setPaneWallpaper" hidden>
+            <div class="mac-group wall-head-bar">
+              <div id="wallMiniStage" class="mini-desktop">
+                <span class="mini-win"><i></i><i></i><i></i></span>
+                <span class="mini-dock"></span>
+              </div>
+              <div class="wall-head-meta">
+                <span class="mini-cap">Desktop Preview</span>
+                <div class="seg-ctrl wall-tabs" data-tab="0" role="tablist" aria-label="Wallpaper source">
+                  <button type="button" class="wall-tab active" data-tab="color" role="tab" aria-selected="true">Color</button>
+                  <button type="button" class="wall-tab" data-tab="photo" role="tab" aria-selected="false">Photo</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wall-pane" id="wallColorPane">
+              <div class="sv-wrap">
+                <canvas id="svCanvas" width="360" height="150"></canvas>
+                <span id="svKnob" class="sv-knob"></span>
+              </div>
+
+              <div class="mac-group wall-sliders">
+                <label class="mac-row slider-row">
+                  <span title="Hue">H</span>
+                  <input id="hueSlider" type="range" min="0" max="360" value="0" class="rng hue" aria-label="Hue" />
+                  <output id="hueVal">0°</output>
+                </label>
+                <label class="mac-row slider-row">
+                  <span title="Saturation">S</span>
+                  <input id="satSlider" type="range" min="0" max="100" value="0" class="rng sat" aria-label="Saturation" />
+                  <output id="satVal">0%</output>
+                </label>
+                <label class="mac-row slider-row">
+                  <span title="Brightness">B</span>
+                  <input id="valSlider" type="range" min="0" max="100" value="100" class="rng val" aria-label="Brightness" />
+                  <output id="valVal">100%</output>
+                </label>
+                <div class="mac-row hex-row">
+                  <span>Hex</span>
+                  <div class="hex-controls">
+                    <span id="colorSwatch" class="color-swatch"></span>
+                    <label class="hex-field">
+                      <input id="hexInput" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex color" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mac-group swatches-group">
+                <div class="presets" id="colorPresets" aria-label="Color presets"></div>
+              </div>
+            </div>
+
+            <div class="wall-pane" id="wallPhotoPane" hidden>
+              <div class="wall-drop" id="wallDrop">
+                <img id="wallThumb" alt="" hidden />
+                <div class="wall-drop-msg" id="wallDropMsg">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/><path d="M4 18l5.5-5.5 3.5 3.5 2.5-2.5L20 18"/></svg>
+                  <span>Drop or upload image</span>
+                </div>
+              </div>
+
+              <input id="wallFile" type="file" accept="image/*" hidden />
+
+              <div class="mac-group">
+                <div class="mac-row">
+                  <span>Image</span>
+                  <div class="wall-photo-actions">
+                    <button type="button" id="wallUploadBtn" class="btn icon-btn primary" title="Choose Photo" aria-label="Choose Photo">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0l-4 4m4-4l4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    </button>
+                    <button type="button" id="wallClearBtn" class="btn icon-btn danger" title="Remove Photo" aria-label="Remove Photo" hidden>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="mac-row wall-fit-row" id="wallFitRow">
+                  <span>Fit</span>
+                  <div class="fit-seg">
+                    <button type="button" data-fit="cover" class="active" title="Fill" aria-label="Fill">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 10L6 7m0 0h3m-3 0v3M15 14l3 3m0 0h-3m3 0v-3"/></svg>
+                    </button>
+                    <button type="button" data-fit="contain" title="Fit" aria-label="Fit">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><rect x="7.5" y="8" width="9" height="8" rx="1" fill="currentColor" opacity=".35"/></svg>
+                    </button>
+                    <button type="button" data-fit="100% 100%" title="Stretch" aria-label="Stretch">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 12h10m-10 0l2-2m-2 2l2 2m8-2l-2-2m2 2l-2 2"/></svg>
+                    </button>
+                    <button type="button" data-fit="auto" title="Center" aria-label="Center">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="set-pane" id="setPaneFlash" hidden>
+            <div id="flashPreviewBox" class="flash-preview-box">
+              <div class="fp-glow"></div>
+              <span id="flashPreviewLabel">92% · #FFFFFF</span>
+            </div>
+
+            <div class="mac-group">
+              <div class="mac-row">
+                <span>Mode</span>
+                <div class="seg-ctrl" id="flashModeSeg" role="radiogroup" aria-label="Flash mode">
+                  <button type="button" class="active" data-fmode="flash">Flash</button>
+                  <button type="button" data-fmode="fill">Fill Light</button>
+                </div>
+              </div>
+              <div class="mac-row">
+                <span>Color</span>
+                <div class="flash-colors">
+                  <div class="flash-presets" id="flashPresets"></div>
+                  <label class="flash-custom-pick" title="Custom color">
+                    <input type="color" id="flashColorPicker" value="#FFFFFF" aria-label="Custom flash color" />
+                    <span class="fc-swatch" id="flashCustomSwatch"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="mac-row flash-bright-row">
+                <span>Brightness</span>
+                <div class="flash-slider-wrap">
+                  <input type="range" id="flashBright" class="rng" min="20" max="100" value="92" aria-label="Flash brightness" />
+                  <output id="flashBrightVal">92%</output>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="set-pane" id="setPaneTimer" hidden>
+            <div class="timer-hero">
+              <div class="timer-badge" id="timerBadge">3s</div>
+              <div class="timer-hero-text">
+                <h4 id="timerSummaryTitle">3 Seconds</h4>
+                <p id="timerSummaryDesc">Photo Booth (Photo, 4-Up &amp; Video) and Screenshot</p>
+              </div>
+            </div>
+
+            <div class="mac-group">
+              <div class="mac-row">
+                <span>Countdown</span>
+                <div class="seg-ctrl" id="timerPresetSeg" role="radiogroup" aria-label="Timer duration">
+                  <button type="button" data-tpreset="0">0s</button>
+                  <button type="button" data-tpreset="3">3s</button>
+                  <button type="button" data-tpreset="5">5s</button>
+                  <button type="button" data-tpreset="custom">Custom</button>
+                </div>
+              </div>
+              <div class="mac-row timer-custom-row" id="timerCustomRow" hidden>
+                <span>Custom (1–30s)</span>
+                <div class="timer-custom-ctrl">
+                  <input type="range" id="timerCustomRange" class="rng timer-rng" min="1" max="30" value="10" aria-label="Custom timer seconds slider" />
+                  <div class="timer-num-field">
+                    <input type="number" id="timerCustomInput" min="1" max="30" step="1" value="10" aria-label="Custom timer seconds" />
+                    <span>s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mac-group timer-notes">
+              <div class="mac-row">
+                <span>At 0s (Instant)</span>
+                <span class="muted-val">Direct snap/record · 4-Up runs 0.5s/shot</span>
+              </div>
+              <div class="mac-row">
+                <span>Cancel &amp; Sound</span>
+                <span class="muted-val">Press Shutter / Space to cancel · Beep on last 3s if &gt;5s</span>
+              </div>
+            </div>
           </section>
 
           <section class="set-pane" id="setPaneAbout" hidden>
@@ -188,6 +255,42 @@
               <div class="mac-row">
                 <span>Layouts</span>
                 <span class="muted-val">1 – 5 Windows</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="set-pane" id="setPaneReset" hidden>
+            <div class="mac-group reset-hero">
+              <div class="reset-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg>
+              </div>
+              <div class="about-hero-text">
+                <h4>Reset App &amp; Clear Data</h4>
+                <p>Fix broken layouts and wipe all saved photos, videos, screenshots, wallpaper, and preferences stored in this browser.</p>
+              </div>
+            </div>
+            <div class="mac-group">
+              <div class="mac-row">
+                <span>Saved Media</span>
+                <span id="resetMediaCount" class="muted-val">0 items</span>
+              </div>
+              <div class="mac-row">
+                <span>Local Preferences</span>
+                <span class="muted-val">Wallpaper, Flash, Timer, Layout</span>
+              </div>
+              <div class="mac-row">
+                <span>Emergency Reset</span>
+                <span class="muted-val">Alt+Shift+R or ?reset=1</span>
+              </div>
+            </div>
+            <div class="reset-actions">
+              <button type="button" id="resetStartBtn" class="btn reset-btn">Reset Everything &amp; Reload…</button>
+              <div id="resetConfirmBox" class="reset-confirm-box" hidden>
+                <span>Erase all saved media &amp; reset page?</span>
+                <div class="reset-confirm-btns">
+                  <button type="button" id="resetCancelBtn" class="btn">Cancel</button>
+                  <button type="button" id="resetConfirmBtn" class="btn reset-confirm-btn">Confirm Reset</button>
+                </div>
               </div>
             </div>
           </section>
@@ -224,11 +327,34 @@
       </div>
 
       <div class="mac-main">
-        <header class="titlebar mac-main-top">
+        <header class="titlebar mac-main-top files-top">
           <span class="mac-pane-title" id="filesPaneTitle">All</span>
+          <button type="button" id="filesSelectBtn" class="btn icon-btn files-sel-toggle" title="Select" aria-label="Select" hidden>
+            <svg class="ico-sel" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/></svg>
+            <svg class="ico-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
+          </button>
         </header>
 
         <div class="files-body">
+          <div id="filesSelBar" class="files-sel-bar" hidden>
+            <span id="filesSelCount" class="files-sel-badge" aria-label="Selected items">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/></svg>
+              <em id="filesSelCountNum">0</em>
+            </span>
+            <div class="files-sel-acts">
+              <button type="button" id="filesSelAllBtn" class="btn icon-btn files-all-btn" title="Select All" aria-label="Select All">
+                <svg class="ico-all" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><path d="M13.5 17l2.2 2.2L20.5 14.5"/></svg>
+                <svg class="ico-clear" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+              <button type="button" id="filesSelShareBtn" class="btn icon-btn fp-share" title="Share To" aria-label="Share To" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0l-4 4m4-4l4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+              </button>
+              <button type="button" id="filesSelQrBtn" class="btn icon-btn primary files-qr-btn" title="Show QR Code" aria-label="Show QR Code" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
+                <em id="filesSelQrCount" hidden>0</em>
+              </button>
+            </div>
+          </div>
           <div id="filesGrid" class="files-grid"></div>
           <div id="filesEmpty" class="files-empty" hidden>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4.6l2 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
@@ -242,30 +368,121 @@
               </button>
               <span id="fpMeta" class="fp-meta"></span>
               <div class="fp-actions">
-                <button type="button" id="fpWall" class="btn icon-btn fp-wall" title="Set as Wallpaper" aria-label="Set as Wallpaper">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2.5"/><path d="M3 15l4.5-4.5a1.5 1.5 0 0 1 2.1 0L14 15l2.5-2.5a1.5 1.5 0 0 1 2.1 0L21 15"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
-                </button>
-                <button type="button" id="fpDl" class="btn icon-btn primary" title="Download" aria-label="Download">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-                </button>
+                <div class="fp-more-wrap">
+                  <button type="button" id="fpMoreBtn" class="btn icon-btn fp-more-btn" title="More Options" aria-label="More Options" aria-haspopup="menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
+                  </button>
+                  <div id="fpMoreMenu" class="fp-more-menu" role="menu" hidden>
+                    <button type="button" id="fpQr" class="fp-menu-item" role="menuitem">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
+                      <span>QR Code</span>
+                    </button>
+                    <button type="button" id="fpShare" class="fp-menu-item" role="menuitem">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0l-4 4m4-4l4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+                      <span>Share To…</span>
+                    </button>
+                    <button type="button" id="fpDl" class="fp-menu-item" role="menuitem">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                      <span>Download</span>
+                    </button>
+                    <button type="button" id="fpWall" class="fp-menu-item" role="menuitem">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2.5"/><path d="M3 15l4.5-4.5a1.5 1.5 0 0 1 2.1 0L14 15l2.5-2.5a1.5 1.5 0 0 1 2.1 0L21 15"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>
+                      <span>Set as Wallpaper</span>
+                    </button>
+                  </div>
+                </div>
                 <button type="button" id="fpDel" class="btn icon-btn danger" title="Delete" aria-label="Delete">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
                 </button>
               </div>
             </div>
-            <div class="fp-media">
+            <div class="fp-media" id="fpMediaBox">
               <img id="fpImg" alt="" hidden />
-              <video id="fpVideo" controls playsinline hidden></video>
+              <video id="fpVideo" playsinline webkit-playsinline preload="auto" hidden></video>
+              <button type="button" id="fpFullBtn" class="btn icon-btn fp-full-btn" title="Quick Look (Space)" aria-label="Full screen preview">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/></svg>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Screenshot countdown overlay -->
-    <div id="shotCountdown" hidden>
-      <span id="shotCountNum">3</span>
+    <!-- Screenshot App Window -->
+    <div id="shotWin" class="window mac-win shot-win" hidden>
+      <div class="mac-sidebar">
+        <header class="titlebar mac-sb-top">
+          <div class="lights">
+            <button type="button" class="light close" id="shotClose" title="Close" aria-label="Close"></button>
+            <button type="button" class="light min" id="shotMin" title="Minimize" aria-label="Minimize"></button>
+            <button type="button" class="light max disabled" aria-hidden="true" tabindex="-1"></button>
+          </div>
+        </header>
+
+        <div class="mac-sb-label">Screenshot</div>
+        <nav class="mac-sb-nav" id="shotNav" role="tablist" aria-label="Capture type">
+          <button type="button" class="sb-nav-btn active" data-smode="photo" role="tab" aria-selected="true">
+            <i class="sb-ico sb-shot"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2.4"/><circle cx="12" cy="12" r="2.8"/></svg></i><span>Photo</span>
+          </button>
+          <button type="button" class="sb-nav-btn" data-smode="video" role="tab" aria-selected="false">
+            <i class="sb-ico sb-video"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="12.5" height="11" rx="2.4"/><path d="M16 10.2l5-3v9.6l-5-3z"/></svg></i><span>Video</span><em>5s</em>
+          </button>
+        </nav>
+      </div>
+
+      <div class="mac-main">
+        <header class="titlebar mac-main-top">
+          <span class="mac-pane-title" id="shotPaneTitle">Photo</span>
+        </header>
+
+        <div class="util-body shot-body">
+          <div class="mac-group">
+            <div class="mac-row">
+              <span>Flash</span>
+              <button type="button" id="shotFlashToggle" class="mac-switch" role="switch" aria-checked="false" aria-label="Toggle Screenshot Flash">
+                <span></span>
+              </button>
+            </div>
+            <div class="mac-row">
+              <span>Flash Style</span>
+              <button type="button" id="shotOpenFlashSet" class="shot-flash-chip" title="Customize in Settings → Flash">
+                <i id="shotFlashDot"></i>
+                <span id="shotFlashChipText">92%</span>
+              </button>
+            </div>
+            <div class="mac-row" id="shotDurRow" hidden>
+              <span>Max Length</span>
+              <span class="muted-val">5 seconds</span>
+            </div>
+          </div>
+
+          <button type="button" id="shotStartBtn" class="btn primary shot-start-btn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2.4"/><circle cx="12" cy="12" r="2.8"/></svg>
+            <span id="shotStartLabel">Capture</span>
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- Screen Flash & Fill Light Overlays (excluded from Desktop Screenshot & Video canvas) -->
+    <div id="fillLightOverlay" aria-hidden="true" hidden></div>
+    <div id="flashOverlay" aria-hidden="true"></div>
+
+    <!-- Floating 5s Desktop Recording Pill -->
+    <div id="shotRecPill" hidden>
+      <span class="srp-dot"></span>
+      <span id="shotRecTime">0:00 / 0:05</span>
+      <button type="button" id="shotStopBtn" class="srp-stop" title="Stop Recording" aria-label="Stop Recording">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>
+      </button>
+    </div>
+
+    <!-- Screenshot countdown overlay -->
+    <div id="shotCountdown" hidden title="Click, press Space, or Esc to cancel">
+      <span id="shotCountNum">3</span>
+      <div id="shotCountNote" class="shot-cd-note" role="status" aria-live="polite">Click or press Space to cancel</div>
+    </div>
+    <div id="desktopNotice" hidden role="status" aria-live="polite"></div>
 
     <!-- macOS-style bottom-right screenshot preview -->
     <div id="shotToast" hidden role="button" tabindex="0" title="Open in Files" aria-label="Open screenshot in Files">
@@ -284,74 +501,49 @@
         <span class="dock-tip">Photo Booth</span>
         <svg class="dock-icon" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
-            <linearGradient id="pbBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#f7f7fa"/>
-              <stop offset="100%" stop-color="#d8d8e0"/>
+            <clipPath id="pbSquircle">
+              <path d="M32 3C48.8 3 53.5 3.6 57.2 7.3C60.4 10.5 61 15.2 61 32C61 48.8 60.4 53.5 57.2 56.7C53.5 60.4 48.8 61 32 61C15.2 61 10.5 60.4 7.3 56.7C3.6 53.5 3 48.8 3 32C3 15.2 3.6 10.5 7.3 7.3C10.5 3.6 15.2 3 32 3Z"/>
+            </clipPath>
+            <linearGradient id="pbBase" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e5e8ef"/>
             </linearGradient>
-            <linearGradient id="pbCurtain" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#ff4d42"/>
-              <stop offset="55%" stop-color="#d41910"/>
-              <stop offset="100%" stop-color="#8c0b05"/>
+            <linearGradient id="pbPrint" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="52%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#ec4899"/>
             </linearGradient>
-            <linearGradient id="pbBooth" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#35363c"/>
-              <stop offset="100%" stop-color="#191a1e"/>
+            <linearGradient id="pbCurtain" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#b91c1c"/>
+              <stop offset="48%" stop-color="#ef4444"/>
+              <stop offset="82%" stop-color="#dc2626"/>
+              <stop offset="100%" stop-color="#991b1b"/>
             </linearGradient>
-            <linearGradient id="pbGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity=".42"/>
-              <stop offset="55%" stop-color="#fff" stop-opacity="0"/>
+            <linearGradient id="pbFold" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#7f1d1d" stop-opacity=".55"/>
+              <stop offset="50%" stop-color="#fca5a5" stop-opacity=".18"/>
+              <stop offset="100%" stop-color="#450a0a" stop-opacity=".45"/>
             </linearGradient>
+            <filter id="pbDrop" x="-20%" y="-20%" width="145%" height="145%">
+              <feDropShadow dx="0" dy="1.8" stdDeviation="1.6" flood-color="#0f172a" flood-opacity=".22"/>
+            </filter>
           </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#pbBg)"/>
-          <rect x="5" y="5" width="54" height="54" rx="11" fill="url(#pbBooth)"/>
-          <rect x="17" y="13" width="13.5" height="17" rx="2.5" fill="#5ac8fa"/>
-          <rect x="33.5" y="13" width="13.5" height="17" rx="2.5" fill="#ffcc00"/>
-          <rect x="17" y="33" width="13.5" height="17" rx="2.5" fill="#ff6482"/>
-          <rect x="33.5" y="33" width="13.5" height="17" rx="2.5" fill="#64d2ff"/>
-          <circle cx="23.75" cy="19.5" r="3" fill="rgba(255,255,255,.85)"/>
-          <path d="M19 28c.8-3 2.5-4.3 4.75-4.3S27.7 25 28.5 28" fill="rgba(255,255,255,.85)"/>
-          <circle cx="40.25" cy="19.5" r="3" fill="rgba(255,255,255,.85)"/>
-          <path d="M35.5 28c.8-3 2.5-4.3 4.75-4.3S44.2 25 45 28" fill="rgba(255,255,255,.85)"/>
-          <circle cx="23.75" cy="39.5" r="3" fill="rgba(255,255,255,.85)"/>
-          <path d="M19 48c.8-3 2.5-4.3 4.75-4.3S27.7 45 28.5 48" fill="rgba(255,255,255,.85)"/>
-          <circle cx="40.25" cy="39.5" r="3" fill="rgba(255,255,255,.85)"/>
-          <path d="M35.5 48c.8-3 2.5-4.3 4.75-4.3S44.2 45 45 48" fill="rgba(255,255,255,.85)"/>
-          <path d="M5 16c0-6.1 4.9-11 11-11h32c6.1 0 11 4.9 11 11v2c-4.5 2-9 2.5-13.5 0-4.5 2.5-9 2.5-13.5 0-4.5 2.5-9 2.5-13.5 0-4.5 2.5-9 2-13.5 0v-2z" fill="url(#pbCurtain)"/>
-          <path d="M5 16h9v32c0 6.1-3.5 11-9 11V16z" fill="url(#pbCurtain)" opacity=".92"/>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#pbGloss)"/>
-          <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="rgba(0,0,0,.12)"/>
-        </svg>
-        <i class="dock-dot"></i>
-      </button>
-
-      <button type="button" id="dockWall" class="dock-item" aria-label="Wallpaper">
-        <span class="dock-tip">Wallpaper</span>
-        <svg class="dock-icon" viewBox="0 0 64 64" aria-hidden="true">
-          <defs>
-            <linearGradient id="wlSky" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#4facfe"/>
-              <stop offset="48%" stop-color="#a18cd1"/>
-              <stop offset="100%" stop-color="#fbc2eb"/>
-            </linearGradient>
-            <linearGradient id="wlHill1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#5e60ce"/>
-              <stop offset="100%" stop-color="#2b2d42"/>
-            </linearGradient>
-            <linearGradient id="wlHill2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#ff758c"/>
-              <stop offset="100%" stop-color="#ff7eb3"/>
-            </linearGradient>
-            <linearGradient id="wlGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity=".38"/>
-              <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#wlSky)"/>
-          <circle cx="45" cy="18" r="6" fill="#fff7d6" opacity=".92"/>
-          <path d="M2 40c12-10 24-6 36 2 8 5 16 4 24-3v9c0 7.7-6.3 14-14 14H16C8.3 62 2 55.7 2 48v-8z" fill="url(#wlHill2)" opacity=".88"/>
-          <path d="M2 46c14-9 28-3 42 5 6 3.5 12 2.5 18-1v-2c0 7.7-6.3 14-14 14H16C8.3 62 2 55.7 2 48v-2z" fill="url(#wlHill1)"/>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#wlGloss)"/>
-          <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="rgba(0,0,0,.12)"/>
+          <path d="M32 3C48.8 3 53.5 3.6 57.2 7.3C60.4 10.5 61 15.2 61 32C61 48.8 60.4 53.5 57.2 56.7C53.5 60.4 48.8 61 32 61C15.2 61 10.5 60.4 7.3 56.7C3.6 53.5 3 48.8 3 32C3 15.2 3.6 10.5 7.3 7.3C10.5 3.6 15.2 3 32 3Z" fill="url(#pbBase)"/>
+          <g clip-path="url(#pbSquircle)">
+            <!-- Crisp instant Polaroid print -->
+            <g transform="rotate(4.5 35 34)" filter="url(#pbDrop)">
+              <rect x="20" y="13" width="30" height="37" rx="3.2" fill="#ffffff" stroke="rgba(15,23,42,.08)" stroke-width=".8"/>
+              <rect x="22.8" y="15.8" width="24.4" height="25.2" rx="1.8" fill="url(#pbPrint)"/>
+              <circle cx="35" cy="28.4" r="6.2" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="1.8"/>
+              <circle cx="35" cy="28.4" r="2.2" fill="rgba(255,255,255,.92)"/>
+            </g>
+            <!-- Sculptural crimson velvet curtain along left -->
+            <g filter="url(#pbDrop)">
+              <path d="M2 2h22.5c-.8 12-1.8 22.5-6.2 31.5 2.4 7.5 4.2 15.5 5 28.5H2z" fill="url(#pbCurtain)"/>
+              <path d="M9.5 2h4.2c-.6 13-1.4 23-4.2 31.5 1.8 8 3 16 3.5 28.5H9.2c-.8-12-2-20-3.2-28.5C8 24.5 9 15 9.5 2z" fill="url(#pbFold)"/>
+            </g>
+          </g>
+          <path d="M32 3.5C48.6 3.5 53.2 4.1 56.8 7.6C59.9 10.7 60.5 15.3 60.5 32C60.5 48.7 59.9 53.3 56.8 56.4C53.2 59.9 48.6 60.5 32 60.5C15.4 60.5 10.8 59.9 7.6 56.8C4.1 53.2 3.5 48.6 3.5 32C3.5 15.4 4.1 10.8 7.6 7.6C10.8 4.1 15.4 3.5 32 3.5Z" fill="none" stroke="rgba(0,0,0,.09)" stroke-width="1"/>
         </svg>
         <i class="dock-dot"></i>
       </button>
@@ -360,31 +552,31 @@
         <span class="dock-tip">Files</span>
         <svg class="dock-icon" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
-            <linearGradient id="flBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#f5f7fb"/>
-              <stop offset="100%" stop-color="#d9dfea"/>
+            <linearGradient id="flBase" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e5e8ef"/>
             </linearGradient>
-            <linearGradient id="flBack" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#3fa9f5"/>
-              <stop offset="100%" stop-color="#1976d2"/>
+            <linearGradient id="flTab" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3597ee"/>
+              <stop offset="100%" stop-color="#1971cc"/>
             </linearGradient>
-            <linearGradient id="flFront" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#7cd3ff"/>
-              <stop offset="55%" stop-color="#2ea3f8"/>
-              <stop offset="100%" stop-color="#1473d1"/>
+            <linearGradient id="flBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#6cc7ff"/>
+              <stop offset="22%" stop-color="#3aa8fa"/>
+              <stop offset="100%" stop-color="#0b6be0"/>
             </linearGradient>
-            <linearGradient id="flGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity=".4"/>
-              <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
-            </linearGradient>
+            <filter id="flShadow" x="-15%" y="-15%" width="130%" height="140%">
+              <feDropShadow dx="0" dy="1.8" stdDeviation="1.5" flood-color="#0a2540" flood-opacity=".18"/>
+            </filter>
           </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#flBg)"/>
-          <path d="M12 18c0-2.2 1.8-4 4-4h10.5c1.5 0 2.9.8 3.6 2.1l1.2 1.9H48c2.2 0 4 1.8 4 4v24c0 2.2-1.8 4-4 4H16c-2.2 0-4-1.8-4-4V18z" fill="url(#flBack)"/>
-          <rect x="14" y="21" width="36" height="5" rx="2" fill="rgba(255,255,255,.78)"/>
-          <rect x="12" y="24" width="40" height="26" rx="4" fill="url(#flFront)"/>
-          <rect x="12" y="24" width="40" height="1.4" rx=".7" fill="rgba(255,255,255,.5)"/>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#flGloss)"/>
-          <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="rgba(0,0,0,.12)"/>
+          <path d="M32 3C48.8 3 53.5 3.6 57.2 7.3C60.4 10.5 61 15.2 61 32C61 48.8 60.4 53.5 57.2 56.7C53.5 60.4 48.8 61 32 61C15.2 61 10.5 60.4 7.3 56.7C3.6 53.5 3 48.8 3 32C3 15.2 3.6 10.5 7.3 7.3C10.5 3.6 15.2 3 32 3Z" fill="url(#flBase)"/>
+          <g filter="url(#flShadow)">
+            <path d="M12 19.5c0-2.2 1.8-4 4-4h9.4c1.3 0 2.5.6 3.3 1.7l1.3 1.8H48c2.2 0 4 1.8 4 4v21.5c0 2.2-1.8 4-4 4H16c-2.2 0-4-1.8-4-4V19.5z" fill="url(#flTab)"/>
+            <rect x="13.5" y="21.2" width="37" height="3.2" rx="1.4" fill="#f7fbff" opacity=".88"/>
+            <rect x="12" y="23" width="40" height="25.5" rx="4" fill="url(#flBody)"/>
+            <path d="M12.5 25.2c0-1.1.9-2 2-2h35c1.1 0 2 .9 2 2" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+          </g>
+          <path d="M32 3.5C48.6 3.5 53.2 4.1 56.8 7.6C59.9 10.7 60.5 15.3 60.5 32C60.5 48.7 59.9 53.3 56.8 56.4C53.2 59.9 48.6 60.5 32 60.5C15.4 60.5 10.8 59.9 7.6 56.8C4.1 53.2 3.5 48.6 3.5 32C3.5 15.4 4.1 10.8 7.6 7.6C10.8 4.1 15.4 3.5 32 3.5Z" fill="none" stroke="rgba(0,0,0,.09)" stroke-width="1"/>
         </svg>
         <i class="dock-dot"></i>
       </button>
@@ -393,26 +585,41 @@
         <span class="dock-tip">Settings</span>
         <svg class="dock-icon" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
-            <linearGradient id="stBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#adb5c2"/>
-              <stop offset="100%" stop-color="#5d6470"/>
+            <linearGradient id="stMetal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f2f4f7"/>
+              <stop offset="50%" stop-color="#c6cbd4"/>
+              <stop offset="100%" stop-color="#8d939e"/>
             </linearGradient>
-            <linearGradient id="stGear" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#f3f4f6"/>
+            <linearGradient id="stWell" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#17191d"/>
+              <stop offset="100%" stop-color="#31353e"/>
+            </linearGradient>
+            <linearGradient id="stGearRim" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="48%" stop-color="#cfd5de"/>
+              <stop offset="100%" stop-color="#888f9a"/>
+            </linearGradient>
+            <linearGradient id="stHub" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e5e7eb"/>
               <stop offset="100%" stop-color="#9ca3af"/>
             </linearGradient>
-            <linearGradient id="stGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity=".35"/>
-              <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
-            </linearGradient>
+            <filter id="stShadow" x="-15%" y="-15%" width="130%" height="130%">
+              <feDropShadow dx="0" dy="1.2" stdDeviation="1.1" flood-color="#000" flood-opacity=".42"/>
+            </filter>
           </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#stBg)"/>
-          <circle cx="32" cy="32" r="21" fill="#2d3138"/>
-          <path d="M35.2 13.5l1 4.2a14.4 14.4 0 0 1 3.7 1.5l3.7-2.2 4.5 4.5-2.2 3.7a14.4 14.4 0 0 1 1.5 3.7l4.2 1v6.2l-4.2 1a14.4 14.4 0 0 1-1.5 3.7l2.2 3.7-4.5 4.5-3.7-2.2a14.4 14.4 0 0 1-3.7 1.5l-1 4.2h-6.4l-1-4.2a14.4 14.4 0 0 1-3.7-1.5l-3.7 2.2-4.5-4.5 2.2-3.7a14.4 14.4 0 0 1-1.5-3.7l-4.2-1v-6.2l4.2-1a14.4 14.4 0 0 1 1.5-3.7l-2.2-3.7 4.5-4.5 3.7 2.2a14.4 14.4 0 0 1 3.7-1.5l1-4.2h6.4z" fill="url(#stGear)"/>
-          <circle cx="32" cy="32" r="7.5" fill="#2d3138" stroke="#d1d5db" stroke-width="2"/>
-          <circle cx="32" cy="32" r="3.2" fill="#9ca3af"/>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#stGloss)"/>
-          <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="rgba(0,0,0,.18)"/>
+          <path d="M32 3C48.8 3 53.5 3.6 57.2 7.3C60.4 10.5 61 15.2 61 32C61 48.8 60.4 53.5 57.2 56.7C53.5 60.4 48.8 61 32 61C15.2 61 10.5 60.4 7.3 56.7C3.6 53.5 3 48.8 3 32C3 15.2 3.6 10.5 7.3 7.3C10.5 3.6 15.2 3 32 3Z" fill="url(#stMetal)"/>
+          <circle cx="32" cy="32" r="22.2" fill="url(#stWell)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+          <!-- Precision sculpted 12-tooth macOS gear -->
+          <g filter="url(#stShadow)">
+            <path d="M29.88 16.54L30.40 12.06L33.60 12.06L34.12 16.54L37.89 17.56L40.58 13.93L43.36 15.54L41.56 19.67L44.33 22.44L48.46 20.64L50.07 23.42L46.44 26.11L47.46 29.88L51.94 30.40L51.94 33.60L47.46 34.12L46.44 37.89L50.07 40.58L48.46 43.36L44.33 41.56L41.56 44.33L43.36 48.46L40.58 50.07L37.89 46.44L34.12 47.46L33.60 51.94L30.40 51.94L29.88 47.46L26.11 46.44L23.42 50.07L20.64 48.46L22.44 44.33L19.67 41.56L15.54 43.36L13.93 40.58L17.56 37.89L16.54 34.12L12.06 33.60L12.06 30.40L16.54 29.88L17.56 26.11L13.93 23.42L15.54 20.64L19.67 22.44L22.44 19.67L20.64 15.54L23.42 13.93L26.11 17.56Z" fill="url(#stGearRim)"/>
+            <circle cx="32" cy="32" r="16.2" fill="url(#stGearRim)"/>
+            <circle cx="32" cy="32" r="12.2" fill="#1e2127"/>
+            <circle cx="32" cy="32" r="8.6" fill="none" stroke="url(#stGearRim)" stroke-width="2.1"/>
+            <path d="M32 23.8v4.2M39.1 36.1l-3.6-2.1M24.9 36.1l3.6-2.1" stroke="url(#stGearRim)" stroke-width="2.3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="4.3" fill="url(#stHub)"/>
+            <circle cx="32" cy="32" r="1.9" fill="#1b1d22"/>
+          </g>
+          <path d="M32 3.5C48.6 3.5 53.2 4.1 56.8 7.6C59.9 10.7 60.5 15.3 60.5 32C60.5 48.7 59.9 53.3 56.8 56.4C53.2 59.9 48.6 60.5 32 60.5C15.4 60.5 10.8 59.9 7.6 56.8C4.1 53.2 3.5 48.6 3.5 32C3.5 15.4 4.1 10.8 7.6 7.6C10.8 4.1 15.4 3.5 32 3.5Z" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1"/>
         </svg>
         <i class="dock-dot"></i>
       </button>
@@ -421,27 +628,32 @@
         <span class="dock-tip">Screenshot</span>
         <svg class="dock-icon" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
-            <linearGradient id="scBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#52555e"/>
-              <stop offset="100%" stop-color="#272930"/>
+            <linearGradient id="scBase" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3c4049"/>
+              <stop offset="100%" stop-color="#191b20"/>
             </linearGradient>
-            <linearGradient id="scLens" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="55%" stop-color="#2563eb"/>
-              <stop offset="100%" stop-color="#1e1b4b"/>
+            <linearGradient id="scBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f2f4f8"/>
+              <stop offset="100%" stop-color="#c3c8d2"/>
             </linearGradient>
-            <linearGradient id="scGloss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fff" stop-opacity=".3"/>
-              <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
-            </linearGradient>
+            <radialGradient id="scOptic" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#67e8f9"/>
+              <stop offset="32%" stop-color="#2563eb"/>
+              <stop offset="72%" stop-color="#1e1b4b"/>
+              <stop offset="100%" stop-color="#090b10"/>
+            </radialGradient>
           </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#scBg)"/>
-          <path d="M13 21v-5a3 3 0 0 1 3-3h5M43 13h5a3 3 0 0 1 3 3v5M51 43v5a3 3 0 0 1-3 3h-5M21 51h-5a3 3 0 0 1-3-3v-5" fill="none" stroke="rgba(255,255,255,.82)" stroke-width="2.6" stroke-linecap="round"/>
-          <path d="M23 23l2.2-3h13.6l2.2 3H44a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V27a4 4 0 0 1 4-4h3z" fill="#e5e7eb"/>
-          <circle cx="32" cy="34" r="6.8" fill="url(#scLens)" stroke="#1f2937" stroke-width="2"/>
-          <circle cx="29.8" cy="31.8" r="1.8" fill="#fff" opacity=".75"/>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#scGloss)"/>
-          <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="rgba(0,0,0,.18)"/>
+          <path d="M32 3C48.8 3 53.5 3.6 57.2 7.3C60.4 10.5 61 15.2 61 32C61 48.8 60.4 53.5 57.2 56.7C53.5 60.4 48.8 61 32 61C15.2 61 10.5 60.4 7.3 56.7C3.6 53.5 3 48.8 3 32C3 15.2 3.6 10.5 7.3 7.3C10.5 3.6 15.2 3 32 3Z" fill="url(#scBase)"/>
+          <!-- macOS selection dashed frame -->
+          <rect x="11.5" y="11.5" width="41" height="41" rx="5.5" fill="none" stroke="rgba(255,255,255,.78)" stroke-width="1.8" stroke-dasharray="4.5 3.5"/>
+          <!-- Precision anodized camera body -->
+          <path d="M23.5 23.5l1.9-2.8h13.2l1.9 2.8H43.5a3.5 3.5 0 0 1 3.5 3.5v13a3.5 3.5 0 0 1-3.5 3.5h-23a3.5 3.5 0 0 1-3.5-3.5V27a3.5 3.5 0 0 1 3.5-3.5h3z" fill="url(#scBody)"/>
+          <circle cx="42" cy="27.5" r="1.2" fill="#f59e0b"/>
+          <circle cx="32" cy="33.5" r="7.4" fill="#181a20" stroke="#9ca3af" stroke-width="1.2"/>
+          <circle cx="32" cy="33.5" r="5.3" fill="url(#scOptic)"/>
+          <circle cx="30" cy="31.5" r="1.3" fill="#fff" opacity=".82"/>
+          <circle cx="33.8" cy="35.3" r=".7" fill="#93c5fd" opacity=".65"/>
+          <path d="M32 3.5C48.6 3.5 53.2 4.1 56.8 7.6C59.9 10.7 60.5 15.3 60.5 32C60.5 48.7 59.9 53.3 56.8 56.4C53.2 59.9 48.6 60.5 32 60.5C15.4 60.5 10.8 59.9 7.6 56.8C4.1 53.2 3.5 48.6 3.5 32C3.5 15.4 4.1 10.8 7.6 7.6C10.8 4.1 15.4 3.5 32 3.5Z" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1"/>
         </svg>
       </button>
 
@@ -469,7 +681,7 @@
 
         <div class="viewer" hidden>
           <img class="viewer-img" alt="" hidden />
-          <video class="viewer-video" controls playsinline hidden></video>
+          <video class="viewer-video" playsinline webkit-playsinline preload="auto" hidden></video>
           <div class="viewer-actions">
             <button type="button" class="btn icon-btn dl-btn" title="Download" aria-label="Download">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -494,7 +706,11 @@
           <div class="fx-dots"></div>
         </div>
 
-        <div class="countdown" hidden></div>
+        <div class="countdown" hidden>
+          <span class="cd-num"></span>
+          <div class="cd-note" role="status" aria-live="polite"></div>
+        </div>
+        <div class="stage-toast" hidden role="status" aria-live="polite"></div>
         <div class="rec-badge" hidden><i></i><span class="rec-time">0:00</span></div>
         <div class="message" hidden></div>
       </main>
@@ -519,9 +735,16 @@
           <svg class="ico-photo" viewBox="0 0 24 24"><path d="M9 4 7.6 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.6L15 4z"/><circle cx="12" cy="12.5" r="3.6" class="lens"/></svg>
           <svg class="ico-video" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M16.5 10.2 21.5 7v10l-5-3.2z"/></svg>
           <svg class="ico-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>
+          <svg class="ico-cancel" viewBox="0 0 24 24"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
         </button>
 
         <div class="right">
+          <button type="button" class="btn icon-btn strip-btn" title="Gallery Strip" aria-label="Show or hide gallery strip" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.6"/><circle cx="8.5" cy="9.2" r="1.4" fill="currentColor" stroke="none"/><path d="M3.5 16.5l4.8-4.5a1.5 1.5 0 0 1 2.1 0l3.1 3 2.2-2a1.5 1.5 0 0 1 2.1 0L20.5 16"/></svg>
+          </button>
+          <button type="button" class="btn icon-btn flash-btn" title="Flash" aria-label="Flash" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2.5L5 13.5h6.5l-1 8L19 10.5h-6.5z"/></svg>
+          </button>
           <button type="button" class="btn icon-btn effects-btn" title="Effects" aria-label="Effects" aria-pressed="false">
             <svg class="ico-fx" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="9" r="4.5"/><circle cx="8.8" cy="14.5" r="4.5"/><circle cx="15.2" cy="14.5" r="4.5"/>
@@ -535,6 +758,151 @@
     </div>
   </template>
 
-  <script src="app.js"></script>
+  <!-- Share To macOS Popover (Logo-first Grid) -->
+  <div id="shareMenu" class="share-menu" hidden role="menu" aria-label="Share To">
+    <div class="sm-grid sm-grid-3">
+      <button type="button" class="sm-item" data-sact="qr" role="menuitem" title="Show QR Code">
+        <i class="sm-ico sm-qr"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg></i>
+        <span>QR</span>
+      </button>
+      <button type="button" class="sm-item" data-sact="native" role="menuitem" title="System Share">
+        <i class="sm-ico sm-sys"><svg viewBox="0 0 24 24"><path d="M12 15V4m0 0l-4 4m4-4l4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></i>
+        <span>Share</span>
+      </button>
+      <button type="button" class="sm-item" data-sact="copy" role="menuitem" title="Copy Image">
+        <i class="sm-ico sm-copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></i>
+        <span>Copy</span>
+      </button>
+    </div>
+    <div class="sm-sep" role="separator"></div>
+    <div class="sm-grid sm-grid-4">
+      <button type="button" class="sm-item" data-sact="whatsapp" role="menuitem" title="WhatsApp">
+        <i class="sm-ico sm-wa"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"/><path d="M9.3 8.8c-.2-.5-.4-.5-.7-.5h-.5c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3s-1.7-.8-1.9-.9-.4-.1-.6.1-.7.9-.9 1.1c-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.2-.2.2-.3.3-.5s0-.4 0-.5z" fill="currentColor" stroke="none"/></svg></i>
+        <span>WA</span>
+      </button>
+      <button type="button" class="sm-item" data-sact="instagram" role="menuitem" title="Instagram">
+        <i class="sm-ico sm-ig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></i>
+        <span>IG</span>
+      </button>
+      <button type="button" class="sm-item" data-sact="telegram" role="menuitem" title="Telegram">
+        <i class="sm-ico sm-tg"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6.5 2.4L17 7.5l-5.5 7.5L18 19l3-15z"/></svg></i>
+        <span>TG</span>
+      </button>
+      <button type="button" class="sm-item" data-sact="x" role="menuitem" title="X (Twitter)">
+        <i class="sm-ico sm-x"><svg viewBox="0 0 24 24"><path d="M5 4l14 16M19 4L5 20"/></svg></i>
+        <span>X</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- E2E Encrypted WebRTC QR Host Modal -->
+  <div id="qrModal" class="qr-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="qr-card">
+      <div class="qr-head">
+        <div class="qr-title-wrap">
+          <i class="sm-ico sm-qr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg></i>
+          <h3 id="qrTitle">QR</h3>
+          <span id="qrExpireBadge" class="qr-expire">03:00</span>
+        </div>
+        <button type="button" id="qrCloseBtn" class="btn icon-btn qr-x" title="Close & Disable Link" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div id="qrItemSummary" class="qr-summary"></div>
+      <div class="qr-stage">
+        <div class="qr-paper">
+          <canvas id="qrCanvas" width="220" height="220"></canvas>
+        </div>
+        <div class="qr-sec-pill">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <span>AES-256-GCM · P2P</span>
+        </div>
+      </div>
+      <div id="qrStatus" class="qr-status">Waiting for device…</div>
+      <input type="text" id="qrLinkInput" class="qr-link-input" readonly aria-label="Encrypted QR link" />
+      <div id="qrLocalHint" class="qr-hint" hidden>Opening on <code>localhost</code> only works on this device; open the live URL (<code>pondii.github.io/rupa-booth</code>) so your phone can scan across Wi-Fi.</div>
+      <div class="qr-foot">
+        <button type="button" id="qrCopyBtn" class="btn icon-btn" title="Copy Link" aria-label="Copy Link">
+          <svg class="ico-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg class="ico-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
+        </button>
+        <button type="button" id="qrRefreshBtn" class="btn icon-btn primary" title="Regenerate QR Code" aria-label="Regenerate QR Code" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.7M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.7M20 20v-5h-5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- macOS Finder Quick Look Preview Modal -->
+  <div id="quickLook" class="ql-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="qlTitle">
+    <div class="ql-win">
+      <header class="ql-bar">
+        <div class="lights">
+          <button type="button" class="light close" id="qlCloseBtn" title="Close (Space / Esc)" aria-label="Close Quick Look"></button>
+        </div>
+        <div class="ql-title-wrap">
+          <span id="qlTitle" class="ql-title">Preview</span>
+          <span id="qlIndex" class="ql-index" hidden></span>
+        </div>
+        <div class="ql-tools">
+          <button type="button" id="qlShareBtn" class="btn icon-btn" title="Share To" aria-label="Share To">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0l-4 4m4-4l4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+          </button>
+          <button type="button" id="qlDlBtn" class="btn icon-btn" title="Download" aria-label="Download">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+          <button type="button" id="qlExitBtn" class="btn icon-btn" title="Exit Full Screen (Space / Esc)" aria-label="Exit Full Screen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 20v-5h5M4 9l5-5M20 15l-5 5"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="ql-stage" id="qlStage">
+        <img id="qlImg" alt="" hidden />
+        <video id="qlVideo" playsinline webkit-playsinline preload="auto" hidden></video>
+        <button type="button" id="qlPrevBtn" class="ql-nav prev" title="Previous (Left Arrow)" aria-label="Previous file" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button type="button" id="qlNextBtn" class="ql-nav next" title="Next (Right Arrow)" aria-label="Next file" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone QR Receiver View (?dl=...#k=...) -->
+  <div id="dlView" class="dl-view" hidden>
+    <div class="dl-card">
+      <div class="dl-brand">
+        <div class="about-badge">RB</div>
+        <div>
+          <h2>Rupa Booth</h2>
+          <p><svg class="dl-lock-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> AES-256-GCM</p>
+        </div>
+      </div>
+      <div id="dlStatusText" class="dl-status">Connecting…</div>
+      <div id="dlProgressWrap" class="dl-progress-wrap">
+        <div class="dl-progress-track"><div id="dlProgressBar" class="dl-progress-bar"></div></div>
+        <span id="dlProgressLabel" class="dl-progress-lbl">0%</span>
+      </div>
+      <div id="dlCards" class="dl-cards"></div>
+      <div id="dlActions" class="dl-actions">
+        <button type="button" id="dlAllBtn" class="btn icon-btn primary" title="Download All" aria-label="Download All" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        </button>
+        <button type="button" id="dlRetryBtn" class="btn icon-btn" title="Retry" aria-label="Retry" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.7M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.7M20 20v-5h-5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="js/qr-lib.js?v=20261116a"></script>
+  <script defer src="js/core.js?v=20261116a"></script>
+  <script defer src="js/watermark.js?v=20261116a"></script>
+  <script defer src="js/window-manager.js?v=20261116a"></script>
+  <script defer src="js/apps-settings-files.js?v=20261116a"></script>
+  <script defer src="js/screenshot.js?v=20261116a"></script>
+  <script defer src="js/share-qr.js?v=20261116a"></script>
+  <script defer src="js/main.js?v=20261116b"></script>
 </body>
 </html>

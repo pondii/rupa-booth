@@ -1,0 +1,131 @@
+/* ---------- Small screens & mobile viewport scaling ---------- */
+@media (max-width: 640px) {
+  :root { --pad: 8px; --inner: 8px; --strip: 62px; --bar: 56px; }
+  .shutter { width: 46px; height: 46px; }
+  .btn { min-width: 0; padding: 0 12px; }
+  .dock-item { width: 42px; height: 42px; }
+}
+@media (max-width: 560px) {
+  .mac-sidebar, .files-win .mac-sidebar { width: 120px; padding: 0 6px 10px; }
+  .shot-win .mac-sidebar { width: 112px; }
+  .flash-slider-wrap { width: 120px; }
+  .timer-rng { width: 88px; }
+  .layout-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Explicit phone viewport compact scale (portrait + landscape phones) */
+body.is-mobile {
+  --pad: 6px;
+  --inner: 6px;
+  --strip: 46px;
+  --bar: 44px;
+  --title: 24px;
+  --gap: 6px;
+  --r-win: 10px;
+  --r-stage: 12px;
+}
+body.is-mobile.is-mobile-land {
+  --strip: 38px;
+  --bar: 38px;
+  --title: 22px;
+  --gap: 6px;
+}
+
+body.is-mobile .window {
+  border-radius: calc(var(--r-stage) + var(--inner));
+}
+body.is-mobile .lights { gap: 6px; }
+body.is-mobile .light { width: 11px; height: 11px; }
+body.is-mobile .title-input { font-size: 12px; max-width: 110px; }
+body.is-mobile .library { gap: 8px; padding: 3px 6px; }
+body.is-mobile .thumb { border-radius: 5px; }
+body.is-mobile .toolbar { padding: 0 2px; }
+
+/* Symmetric compact left/right trays & shutter on phone */
+body.is-mobile .modes,
+body.is-mobile .right {
+  width: 78px; height: 28px; padding: 2px; gap: 1px; border-radius: 7px;
+  justify-content: center;
+}
+body.is-mobile .modes button,
+body.is-mobile .right .btn.icon-btn {
+  width: 24px; height: 22px; padding: 0; border-radius: 5px; font-size: 0;
+}
+body.is-mobile .modes .ind {
+  top: 2px; left: 2px; width: 24px; height: 22px; border-radius: 5px;
+}
+body.is-mobile .modes[data-active="1"] .ind { transform: translateX(25px); }
+body.is-mobile .modes[data-active="2"] .ind { transform: translateX(49px); }
+body.is-mobile .modes button svg,
+body.is-mobile .right .btn.icon-btn svg { width: 14px; height: 14px; }
+body.is-mobile .shutter { width: 38px; height: 38px; }
+body.is-mobile .shutter::before { inset: 3px; border-width: 1.5px; }
+body.is-mobile .window .btn:not(.icon-btn) { height: 28px; font-size: 11.5px; padding: 0 10px; }
+
+body.is-mobile.is-mobile-land .modes,
+body.is-mobile.is-mobile-land .right {
+  width: 72px; height: 26px; padding: 2px; gap: 1px;
+}
+body.is-mobile.is-mobile-land .modes button,
+body.is-mobile.is-mobile-land .right .btn.icon-btn {
+  width: 22px; height: 20px;
+}
+body.is-mobile.is-mobile-land .modes .ind { width: 22px; height: 20px; }
+body.is-mobile.is-mobile-land .modes[data-active="1"] .ind { transform: translateX(23px); }
+body.is-mobile.is-mobile-land .modes[data-active="2"] .ind { transform: translateX(45px); }
+body.is-mobile.is-mobile-land .modes button svg,
+body.is-mobile.is-mobile-land .right .btn.icon-btn svg { width: 13px; height: 13px; }
+body.is-mobile.is-mobile-land .shutter { width: 32px; height: 32px; }
+body.is-mobile.is-mobile-land .title-input { font-size: 11px; max-width: 96px; }
+
+/* Compact Dock on phone */
+body.is-mobile #dock {
+  bottom: 8px; gap: 6px; padding: 5px 8px 6px; border-radius: 15px;
+  max-width: calc(100vw - 14px);
+}
+body.is-mobile .dock-item { width: 36px; height: 36px; }
+body.is-mobile .dock-item:hover { transform: translateY(-2px) scale(1.06); }
+body.is-mobile .dock-sep { height: 22px; }
+body.is-mobile.is-mobile-land #dock { bottom: 5px; gap: 5px; padding: 4px 7px; border-radius: 13px; }
+body.is-mobile.is-mobile-land .dock-item { width: 32px; height: 32px; }
+body.is-mobile.is-mobile-land .dock-sep { height: 18px; }
+
+/* Compact Utility Windows & Modals on phone */
+body.is-mobile .mac-win {
+  max-width: calc(100vw - 12px);
+  max-height: calc(100dvh - 68px);
+  border-radius: 14px;
+}
+body.is-mobile.is-mobile-land .mac-win {
+  max-height: calc(100dvh - 56px);
+}
+body.is-mobile .mac-sidebar,
+body.is-mobile .files-win .mac-sidebar { width: 108px; padding: 0 5px 8px; }
+body.is-mobile .shot-win .mac-sidebar { width: 104px; }
+body.is-mobile .sb-nav-btn { font-size: 12px; padding: 6px 8px; gap: 6px; }
+body.is-mobile .mac-topbar { padding: 8px 12px; font-size: 12.5px; }
+body.is-mobile .util-body { padding: 12px; }
+body.is-mobile .files-body { padding: 10px 12px; }
+body.is-mobile .files-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+body.is-mobile .wall-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 7px; }
+body.is-mobile .qr-card { width: min(330px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); overflow-y: auto; padding: 14px; border-radius: 15px; }
+body.is-mobile .dl-card { padding: 14px; border-radius: 15px; }
+body.is-mobile .ql-backdrop { padding: 8px; }
+body.is-mobile .ql-win { width: 100%; height: 100%; border-radius: 12px; }
+body.is-mobile .ql-nav { width: 30px; height: 30px; }
+body.is-mobile .uvp-bar { left: 6px; right: 6px; bottom: 6px; height: 32px; padding: 0 7px; gap: 5px; border-radius: 9px; }
+body.is-mobile .uvp-time { font-size: 10px; }
+body.is-mobile .uvp-btn { width: 24px; height: 24px; }
+body.is-mobile .fp-media.is-video .fp-full-btn { bottom: 44px; right: 6px; }
+body.is-mobile #desktopNotice { font-size: 11.5px; padding: 6px 12px; max-width: calc(100vw - 24px); text-align: center; }
+
+@media (pointer: coarse) {
+  .light { width: 13px; height: 13px; }
+  .lights { gap: 8px; }
+  body.is-mobile .light { width: 11px; height: 11px; }
+  body.is-mobile .lights { gap: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition-duration: .01ms !important; }
+}

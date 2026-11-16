@@ -17,41 +17,52 @@ document.body.appendChild(video);
 
 /* ---------------------------- Effects ---------------------------- */
 const EFFECTS = [
-  // Page 1 — filters
+  // Page 1 — Color & Film
   { id: 'normal',  name: 'Normal',         fx: 0 },
   { id: 'sepia',   name: 'Sepia',          fx: 1 },
   { id: 'bw',      name: 'Black & White',  fx: 2 },
+  { id: 'vintage', name: 'Vintage',        fx: 18 },
+  { id: 'duotone', name: 'Duotone',        fx: 22 },
   { id: 'glow',    name: 'Glow',           fx: 3 },
-  { id: 'pencil',  name: 'Colored Pencil', fx: 4 },
-  { id: 'thermal', name: 'Thermal Camera', fx: 5 },
+  { id: 'dreamy',  name: 'Dreamy',         fx: 19 },
+  { id: 'negative',name: 'Negative',       fx: 21 },
   { id: 'xray',    name: 'X-Ray',          fx: 6 },
-  { id: 'pop',     name: 'Pop Art',        fx: 7 },
+  // Page 2 — Stylize & Light
+  { id: 'pencil',  name: 'Colored Pencil', fx: 4 },
   { id: 'comic',   name: 'Comic Book',     fx: 8 },
-  // Page 2 — distortions
+  { id: 'pop',     name: 'Pop Art',        fx: 7 },
+  { id: 'halftone',name: 'Halftone',       fx: 24 },
+  { id: 'neon',    name: 'Neon Edges',     fx: 23 },
+  { id: 'pixel',   name: 'Pixelate',       fx: 20 },
+  { id: 'thermal', name: 'Thermal Camera', fx: 5 },
+  { id: 'tunnel',  name: 'Light Tunnel',   fx: 14 },
+  // Page 3 — Distort & Optics
   { id: 'bulge',   name: 'Bulge',          fx: 9 },
   { id: 'dent',    name: 'Dent',           fx: 10 },
   { id: 'twirl',   name: 'Twirl',          fx: 11 },
   { id: 'squeeze', name: 'Squeeze',        fx: 12 },
-  { id: 'mirror',  name: 'Mirror',         fx: 13 },
-  { id: 'tunnel',  name: 'Light Tunnel',   fx: 14 },
   { id: 'fisheye', name: 'Fisheye',        fx: 15 },
   { id: 'stretch', name: 'Stretch',        fx: 16 },
-  // Page 3 — more looks
+  { id: 'mirror',  name: 'Mirror',         fx: 13 },
   { id: 'kaleido', name: 'Kaleidoscope',   fx: 17 },
-  { id: 'vintage', name: 'Vintage',        fx: 18 },
-  { id: 'dreamy',  name: 'Dreamy',         fx: 19 },
-  { id: 'pixel',   name: 'Pixelate',       fx: 20 },
-  { id: 'negative',name: 'Negative',       fx: 21 },
-  { id: 'duotone', name: 'Duotone',        fx: 22 },
-  { id: 'neon',    name: 'Neon Edges',     fx: 23 },
-  { id: 'halftone',name: 'Halftone',       fx: 24 },
+  // Page 4 — Face AR
+  { id: 'ar_dizzy',      name: 'Dizzy Birds', fx: 101 },
+  { id: 'ar_lovestruck', name: 'Lovestruck',  fx: 102 },
+  { id: 'ar_bunny',      name: 'Bunny Ears',  fx: 103 },
+  { id: 'ar_dog',        name: 'Puppy Dog',   fx: 104 },
+  { id: 'ar_potato',     name: 'Potato Head', fx: 105 },
+  { id: 'ar_cat',        name: 'Kitty Cat',   fx: 106 },
+  { id: 'ar_crown',      name: 'Royal Crown', fx: 107 },
+  { id: 'ar_cowboy',     name: 'Cowboy Hat',  fx: 108 },
 ];
 const effectById = (id) => EFFECTS.find((e) => e.id === id) || EFFECTS[0];
 
+const EFFECT_CATEGORIES = ['Color & Film', 'Stylize & Light', 'Distort & Optics', 'Face AR'];
 const PAGES = [
-  ['sepia', 'bw', 'glow', 'pencil', 'thermal', 'xray', 'pop', 'comic'],
-  ['bulge', 'dent', 'twirl', 'squeeze', 'mirror', 'tunnel', 'fisheye', 'stretch'],
-  ['kaleido', 'vintage', 'dreamy', 'pixel', 'negative', 'duotone', 'neon', 'halftone'],
+  ['sepia', 'bw', 'vintage', 'duotone', 'glow', 'dreamy', 'negative', 'xray'],
+  ['pencil', 'comic', 'pop', 'halftone', 'neon', 'pixel', 'thermal', 'tunnel'],
+  ['bulge', 'dent', 'twirl', 'squeeze', 'fisheye', 'stretch', 'mirror', 'kaleido'],
+  ['ar_dizzy', 'ar_lovestruck', 'ar_bunny', 'ar_dog', 'ar_potato', 'ar_cat', 'ar_crown', 'ar_cowboy'],
 ];
 const pageOf = (id) => PAGES.findIndex((p) => p.includes(id));
 
@@ -81,29 +92,168 @@ let sharedItems = [];
 const PAGE_SESSION = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 /* ----------------------------- Camera ----------------------------- */
+const permState = { camera: 'prompt', microphone: 'prompt' };
+const permWatchers = new Set();
+let initialMediaRequested = false;
+let camStartPromise = null;
+
 function setCameraMessage(text) {
   cameraMsg = text;
   for (const w of windows) w.showMessage(text);
 }
 
-async function startCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return setCameraMessage('Camera access is not available in this browser.\nUse https:// or http://localhost.');
+function notifyPermissionsChanged() {
+  if (typeof refreshPermissionsUI === 'function') refreshPermissionsUI();
+}
+
+function stopCamera() {
+  if (camStream) {
+    try { camStream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+    camStream = null;
+  }
+  if (micStream) {
+    try { micStream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+    micStream = null;
   }
   try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-      audio: false,
-    });
-    video.srcObject = camStream;
-    await video.play();
+    if (video.srcObject) {
+      video.pause();
+      video.srcObject = null;
+    }
+  } catch (_) {}
+  if (typeof AR !== 'undefined') AR.face = null;
+}
+
+function needsHardwareCamera() {
+  return windows.some((w) => !w.closing && !w.minimized);
+}
+
+function syncCameraHardware() {
+  if (!needsHardwareCamera()) {
+    stopCamera();
+    return;
+  }
+  if (!initialMediaRequested || permState.camera === 'denied') return;
+  const live = Boolean(camStream && camStream.getVideoTracks().some((t) => t.readyState === 'live'));
+  if (!live) startCamera();
+}
+
+async function queryPermissionStates() {
+  const res = { camera: permState.camera, microphone: permState.microphone };
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return { camera: 'unavailable', microphone: 'unavailable' };
+  }
+  if (camStream && camStream.getVideoTracks().some((t) => t.readyState === 'live')) {
+    res.camera = 'granted';
+  }
+  if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+    await Promise.all(['camera', 'microphone'].map(async (name) => {
+      try {
+        const status = await navigator.permissions.query({ name });
+        if (status && ['granted', 'denied', 'prompt'].includes(status.state)) {
+          if (!(name === 'camera' && res.camera === 'granted')) {
+            res[name] = status.state;
+          }
+        }
+        if (status && !permWatchers.has(name)) {
+          permWatchers.add(name);
+          status.onchange = () => notifyPermissionsChanged();
+        }
+      } catch (_) { /* Safari/Firefox may not support camera/microphone query names */ }
+    }));
+  }
+  if (navigator.mediaDevices.enumerateDevices) {
+    try {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      if (devs.some((d) => d.kind === 'videoinput' && d.label)) res.camera = 'granted';
+      if (devs.some((d) => d.kind === 'audioinput' && d.label)) res.microphone = 'granted';
+    } catch (_) { /* ignore */ }
+  }
+  permState.camera = res.camera;
+  permState.microphone = res.microphone;
+  return res;
+}
+
+async function startCamera(forcePrompt = false) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    permState.camera = 'unavailable';
+    notifyPermissionsChanged();
+    return setCameraMessage('Camera access is not available in this browser.\nUse https:// or http://localhost.');
+  }
+  if (!forcePrompt && camStream && camStream.getVideoTracks().some((t) => t.readyState === 'live')) {
+    permState.camera = 'granted';
     setCameraMessage(null);
+    notifyPermissionsChanged();
+    return 'granted';
+  }
+  if (camStartPromise) return camStartPromise;
+  camStartPromise = (async () => {
+    try {
+      const nextStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+        audio: false,
+      });
+      if (!forcePrompt && !needsHardwareCamera()) {
+        nextStream.getTracks().forEach((t) => t.stop());
+        permState.camera = 'granted';
+        notifyPermissionsChanged();
+        return 'granted';
+      }
+      if (camStream && camStream !== nextStream) {
+        camStream.getTracks().forEach((t) => t.stop());
+      }
+      camStream = nextStream;
+      video.srcObject = camStream;
+      await video.play();
+      permState.camera = 'granted';
+      setCameraMessage(null);
+      notifyPermissionsChanged();
+      return 'granted';
+    } catch (err) {
+      console.error(err);
+      const denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError' || err.name === 'PermissionDeniedError');
+      permState.camera = denied ? 'denied' : 'unavailable';
+      setCameraMessage(denied
+        ? 'Photo Booth needs camera access.\nAllow camera in your browser or Settings → Permissions, then click Request.'
+        : 'No camera found.\nConnect a camera and click Request in Settings → Permissions.');
+      notifyPermissionsChanged();
+      return permState.camera;
+    } finally {
+      camStartPromise = null;
+    }
+  })();
+  return camStartPromise;
+}
+
+async function requestMicPermission() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    permState.microphone = 'unavailable';
+    notifyPermissionsChanged();
+    return 'unavailable';
+  }
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach((t) => t.stop());
+    permState.microphone = 'granted';
+    notifyPermissionsChanged();
+    return 'granted';
   } catch (err) {
-    console.error(err);
-    const denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
-    setCameraMessage(denied
-      ? 'Photo Booth needs camera access.\nAllow the camera for this page in your browser, then reload.'
-      : 'No camera found.\nConnect a camera and reload the page.');
+    const denied = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError' || err.name === 'PermissionDeniedError');
+    permState.microphone = denied ? 'denied' : 'unavailable';
+    notifyPermissionsChanged();
+    return permState.microphone;
+  }
+}
+
+async function requestInitialMediaPermissions() {
+  if (initialMediaRequested) return;
+  initialMediaRequested = true;
+  if (needsHardwareCamera()) {
+    await startCamera();
+  }
+  const st = await queryPermissionStates();
+  if (st.microphone !== 'granted') {
+    await requestMicPermission();
   }
 }
 
@@ -353,19 +503,22 @@ function uploadFrame() {
   } catch (e) { /* frame not ready yet */ }
 }
 
-function renderEffect(c, x, y, w, h, effect) {
+function renderEffect(c, x, y, w, h, effect, isTile = false) {
   w = Math.round(w); h = Math.round(h);
+  const isAr = effect && effect.fx >= 100;
   if (!FX.ok || w > FX.canvas.width || h > FX.canvas.height) {
     c.save(); c.translate(x + w, y); c.scale(-1, 1); c.drawImage(video, 0, 0, w, h); c.restore();
+    if (isAr && typeof drawArOverlay === 'function') drawArOverlay(c, x, y, w, h, effect, isTile);
     return;
   }
   const gl = FX.gl;
   gl.viewport(0, 0, w, h);
   gl.uniform2f(FX.u.res, w, h);
-  gl.uniform1i(FX.u.fx, effect.fx);
+  gl.uniform1i(FX.u.fx, isAr ? 0 : effect.fx);
   gl.uniform1f(FX.u.time, (performance.now() - T0) / 1000);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   c.drawImage(FX.canvas, 0, FX.canvas.height - h, w, h, x, y, w, h);
+  if (isAr && typeof drawArOverlay === 'function') drawArOverlay(c, x, y, w, h, effect, isTile);
 }
 
 /* ------------------------------ Sound & Utils ------------------------------ */
@@ -968,7 +1121,7 @@ function showEmergencyResetModal(opts = {}) {
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', 'Emergency Total Reset');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,15,20,0.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,15,20,0.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-family:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;';
 
   const card = document.createElement('div');
   card.style.cssText = 'width:100%;max-width:380px;background:rgba(32,32,36,0.96);color:#f5f5f7;border:1px solid rgba(255,255,255,0.16);border-radius:16px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;';

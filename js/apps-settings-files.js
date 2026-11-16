@@ -369,14 +369,23 @@ function setSettingsSection(sec) {
   $('#setPaneFlash').hidden = sec !== 'flash';
   const timerPane = $('#setPaneTimer');
   if (timerPane) timerPane.hidden = sec !== 'timer';
+  const permPane = $('#setPanePermissions');
+  if (permPane) permPane.hidden = sec !== 'permissions';
   $('#setPaneAbout').hidden = sec !== 'about';
   const resetPane = $('#setPaneReset');
   if (resetPane) resetPane.hidden = sec !== 'reset';
-  const titles = { layout: 'Layout', wallpaper: 'Wallpaper', flash: 'Flash', timer: 'Timer', about: 'About', reset: 'Reset' };
+  const titles = { layout: 'Layout', wallpaper: 'Wallpaper', flash: 'Flash', timer: 'Timer', permissions: 'Permissions', about: 'About', reset: 'Reset' };
   $('#settingsPaneTitle').textContent = titles[sec] || 'Settings';
   if (sec === 'wallpaper') {
     drawSV();
     updateSliderTracks();
+  }
+  if (sec === 'permissions') {
+    refreshPermissionsUI();
+  }
+  if (sec === 'about') {
+    const stEl = $('#aboutStorageVal');
+    if (stEl) stEl.textContent = `IndexedDB · ${sharedItems.length} item${sharedItems.length === 1 ? '' : 's'}`;
   }
   if (sec === 'reset') {
     const cntEl = $('#resetMediaCount');
@@ -394,13 +403,60 @@ function openSettingsFlash() {
   setSettingsSection('flash');
 }
 
+const SETTINGS_SEARCH_TERMS = {
+  layout: 'layout window arrangement multi split center side grid camera',
+  wallpaper: 'wallpaper background color photo image hue saturation brightness hex fit cover contain',
+  flash: 'flash fill light pre-flash brightness glow color screen',
+  timer: 'timer countdown seconds delay instant 0s 3s 5s custom beep',
+  permissions: 'permissions camera microphone mic access allow blocked privacy retry',
+  about: 'about mac rupa booth creator instagram privacy encryption storage webgl version',
+  reset: 'reset clear wipe erase reload storage cache fix broken data',
+};
+
 function buildSettingsUI() {
   const nav = $('#settingsNav');
+  const searchInput = $('#settingsSearch');
+  const searchClear = $('#settingsSearchClear');
+  const noResultsEl = $('#settingsNoResults');
+
+  const applySettingsFilter = () => {
+    if (!nav) return;
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    if (searchClear) searchClear.hidden = q.length === 0;
+    let shown = 0;
+    nav.querySelectorAll('.sb-nav-btn').forEach((btn) => {
+      const sec = btn.dataset.sec || '';
+      const label = btn.textContent.toLowerCase();
+      const hay = `${label} ${SETTINGS_SEARCH_TERMS[sec] || ''}`;
+      const match = !q || hay.includes(q);
+      btn.hidden = !match;
+      if (match) shown += 1;
+    });
+    if (noResultsEl) noResultsEl.hidden = shown > 0;
+  };
+
   if (nav) {
     nav.querySelectorAll('.sb-nav-btn').forEach((btn) => {
       btn.addEventListener('click', () => setSettingsSection(btn.dataset.sec));
     });
   }
+  searchInput?.addEventListener('input', applySettingsFilter);
+  searchInput?.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Escape' && searchInput.value) {
+      searchInput.value = '';
+      applySettingsFilter();
+    } else if (e.key === 'Enter' && nav) {
+      const first = nav.querySelector('.sb-nav-btn:not([hidden])');
+      if (first) setSettingsSection(first.dataset.sec);
+    }
+  });
+  searchClear?.addEventListener('click', () => {
+    if (!searchInput) return;
+    searchInput.value = '';
+    applySettingsFilter();
+    searchInput.focus();
+  });
 
   const modeSeg = $('#flashModeSeg');
   const presetsEl = $('#flashPresets');
@@ -540,6 +596,39 @@ function buildSettingsUI() {
   });
   syncTimerSettingsUI();
 
+  const runPermAction = async (btn, busyLabel, task, restoreLabel = null) => {
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = busyLabel;
+    await task();
+    await refreshPermissionsUI();
+    btn.disabled = false;
+    if (restoreLabel) btn.textContent = restoreLabel;
+  };
+  const permCamBtn = $('#permCamBtn');
+  const permMicBtn = $('#permMicBtn');
+  const permAllBtn = $('#permAllBtn');
+  permCamBtn?.addEventListener('click', () => runPermAction(
+    permCamBtn,
+    'Checking…',
+    () => (typeof startCamera === 'function' ? startCamera(true) : Promise.resolve())
+  ));
+  permMicBtn?.addEventListener('click', () => runPermAction(
+    permMicBtn,
+    'Checking…',
+    () => (typeof requestMicPermission === 'function' ? requestMicPermission() : Promise.resolve())
+  ));
+  permAllBtn?.addEventListener('click', () => runPermAction(
+    permAllBtn,
+    'Requesting…',
+    async () => {
+      if (typeof startCamera === 'function') await startCamera(true);
+      if (typeof requestMicPermission === 'function') await requestMicPermission();
+    },
+    'Request Camera & Microphone'
+  ));
+  refreshPermissionsUI();
+
   layoutGridEl.innerHTML = '';
   for (const preset of LAYOUT_PRESETS) {
     const btn = document.createElement('button');
@@ -580,6 +669,54 @@ function buildSettingsUI() {
   });
 }
 
+const PERM_LABELS = { granted: 'Allowed', denied: 'Blocked', prompt: 'Not Asked', unavailable: 'Unavailable' };
+async function refreshPermissionsUI() {
+  const st = typeof queryPermissionStates === 'function'
+    ? await queryPermissionStates()
+    : { camera: 'prompt', microphone: 'prompt' };
+  const applyRow = (state, pillEl, btnEl) => {
+    const s = PERM_LABELS[state] ? state : 'prompt';
+    if (pillEl) {
+      pillEl.dataset.state = s;
+      pillEl.textContent = PERM_LABELS[s];
+    }
+    if (btnEl && !btnEl.disabled) {
+      btnEl.textContent = s === 'granted' ? 'Re-check' : (s === 'denied' ? 'Retry' : 'Request');
+    }
+  };
+  applyRow(st.camera, $('#permCamStatus'), $('#permCamBtn'));
+  applyRow(st.microphone, $('#permMicStatus'), $('#permMicBtn'));
+}
+
+/* ------------------------- Startup Welcome Sheet ------------------------- */
+const welcomeModalEl = $('#welcomeModal');
+const welcomeCloseBtn = $('#welcomeCloseBtn');
+const welcomeStartBtn = $('#welcomeStartBtn');
+const aboutWelcomeBtn = $('#aboutWelcomeBtn');
+
+function openWelcomeModal() {
+  if (!welcomeModalEl) return false;
+  welcomeModalEl.hidden = false;
+  welcomeStartBtn?.focus({ preventScroll: true });
+  return true;
+}
+
+function closeWelcomeModal() {
+  if (!welcomeModalEl || welcomeModalEl.hidden) return false;
+  welcomeModalEl.hidden = true;
+  if (typeof requestInitialMediaPermissions === 'function') {
+    requestInitialMediaPermissions();
+  }
+  return true;
+}
+
+welcomeCloseBtn?.addEventListener('click', closeWelcomeModal);
+welcomeStartBtn?.addEventListener('click', closeWelcomeModal);
+welcomeModalEl?.addEventListener('click', (e) => {
+  if (e.target === welcomeModalEl) closeWelcomeModal();
+});
+aboutWelcomeBtn?.addEventListener('click', openWelcomeModal);
+
 /* ------------------------- Files App ------------------------- */
 const filesWin = $('#filesWin');
 const filesTabsEl = $('#filesTabs');
@@ -601,7 +738,6 @@ const fpBackBtn = $('#fpBack');
 const fpFullBtn = $('#fpFullBtn');
 const quickLookEl = $('#quickLook');
 const qlCloseBtn = $('#qlCloseBtn');
-const qlExitBtn = $('#qlExitBtn');
 const qlTitleEl = $('#qlTitle');
 const qlIndexEl = $('#qlIndex');
 const qlShareBtn = $('#qlShareBtn');
@@ -613,6 +749,8 @@ const qlPrevBtn = $('#qlPrevBtn');
 const qlNextBtn = $('#qlNextBtn');
 const fpVideoUI = fpVideoEl ? createUnifiedVideoPlayer(fpVideoEl, { hostEl: fpMediaBoxEl, compact: true }) : null;
 const qlVideoUI = qlVideoEl ? createUnifiedVideoPlayer(qlVideoEl, { hostEl: qlStageEl }) : null;
+const filesTopTools = $('#filesTopTools');
+const filesViewSeg = $('#filesViewSeg');
 const filesSelectBtn = $('#filesSelectBtn');
 const filesSelBar = $('#filesSelBar');
 const filesSelCountNumEl = $('#filesSelCountNum');
@@ -625,6 +763,7 @@ const filesState = {
   open: false, minimized: false, placed: false, x: 0, y: 0,
   filter: 'all', selectedId: null, previewUrl: null,
   selecting: false, selectedIds: new Set(),
+  view: (() => { try { return localStorage.getItem('pb_files_view') === 'list' ? 'list' : 'grid'; } catch (_) { return 'grid'; } })(),
 };
 
 const quickLookState = { open: false, id: null, url: null };
@@ -648,11 +787,11 @@ function itemCategory(item) {
   return 'photo';
 }
 
-function itemBadgeLabel(item) {
-  if (item.type === 'screenshot') return 'SCREENSHOT';
-  if (item.type === 'video') return 'MOV';
-  if (item.type === '4up') return '4-UP';
-  return 'PHOTO';
+function itemKindShort(item) {
+  if (item.type === 'screenshot') return 'Shot';
+  if (item.type === 'video') return 'Video';
+  if (item.type === '4up') return '4-Up';
+  return 'Photo';
 }
 
 function itemDisplayName(item) {
@@ -660,6 +799,21 @@ function itemDisplayName(item) {
   if (item.type === 'video') return `Video ${stamp(item.createdAt)}`;
   if (item.type === 'screenshot') return `Screenshot ${stamp(item.createdAt)}`;
   return `Photo ${stamp(item.createdAt)}`;
+}
+
+function itemShortTitle(item) {
+  const d = new Date(item.createdAt || Date.now());
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${itemKindShort(item)} ${hh}:${mm}`;
+}
+
+function formatShortDate(ts) {
+  const d = new Date(ts || Date.now());
+  const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${m} ${d.getDate()}, ${hh}:${mm}`;
 }
 
 function toggleFpMoreMenu(force) {
@@ -744,7 +898,7 @@ function closeFilePreview() {
   if (fpMediaBoxEl) fpMediaBoxEl.classList.remove('is-video');
   filesPreviewEl.hidden = true;
   closeShareMenu();
-  if (filesSelectBtn) filesSelectBtn.hidden = getVisibleFilesList().length === 0;
+  syncFilesSelectionUI();
 }
 
 function openFilePreview(id) {
@@ -769,7 +923,7 @@ function openFilePreview(id) {
     fpImgEl.src = filesState.previewUrl;
   }
   filesPreviewEl.hidden = false;
-  if (filesSelectBtn) filesSelectBtn.hidden = true;
+  syncFilesSelectionUI();
 }
 
 function itemExtension(item) {
@@ -806,10 +960,14 @@ function syncFilesSelectionUI() {
   if (list.length === 0 && filesState.selecting) filesState.selecting = false;
   filesWin.classList.toggle('selecting', filesState.selecting);
   if (filesSelectBtn) {
-    const inPreview = filesPreviewEl && !filesPreviewEl.hidden;
-    filesSelectBtn.hidden = inPreview || list.length === 0;
+    const inPreview = Boolean(filesPreviewEl && !filesPreviewEl.hidden);
+    const hideTools = inPreview || list.length === 0;
+    if (filesTopTools) filesTopTools.hidden = hideTools;
+    filesSelectBtn.hidden = hideTools;
+    if (filesViewSeg) filesViewSeg.hidden = hideTools;
     filesSelectBtn.classList.toggle('active', filesState.selecting);
     const lbl = filesState.selecting ? 'Done' : 'Select';
+    filesSelectBtn.textContent = lbl;
     filesSelectBtn.title = lbl;
     filesSelectBtn.setAttribute('aria-label', lbl);
   }
@@ -849,6 +1007,15 @@ function renderFiles() {
 
   const list = getVisibleFilesList();
   syncFilesSelectionUI();
+  const isList = filesState.view === 'list';
+  filesGridEl.classList.toggle('list-view', isList);
+  if (filesViewSeg) {
+    filesViewSeg.querySelectorAll('.fview-btn').forEach((b) => {
+      const on = b.dataset.fview === filesState.view;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+  }
 
   filesGridEl.innerHTML = '';
   filesEmptyEl.hidden = list.length > 0;
@@ -857,7 +1024,6 @@ function renderFiles() {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'file-card' + (picked ? ' picked' : '');
-    const isSS = item.type === 'screenshot';
     const chk = document.createElement('span');
     chk.className = 'fc-check';
     chk.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5 9.5-9.5"/></svg>';
@@ -866,17 +1032,24 @@ function renderFiles() {
     const imgEl = document.createElement('img');
     imgEl.alt = '';
     imgEl.src = thumbUrl(item);
-    const badgeEl = document.createElement('span');
-    badgeEl.className = 'file-kind' + (isSS ? ' ss' : '');
-    badgeEl.textContent = itemBadgeLabel(item);
-    thumbBox.append(chk, imgEl, badgeEl);
+    thumbBox.append(chk, imgEl);
+    if (item.type === 'video') {
+      const playEl = document.createElement('span');
+      playEl.className = 'fc-play';
+      playEl.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.2 2.2L9.8 6 3.2 9.8z"/></svg>';
+      thumbBox.appendChild(playEl);
+    }
     const nameEl = document.createElement('div');
     nameEl.className = 'file-name';
-    nameEl.textContent = itemDisplayName(item);
+    nameEl.textContent = isList ? itemDisplayName(item) : itemShortTitle(item);
+    const kindEl = document.createElement('span');
+    kindEl.className = 'file-kind-txt';
+    kindEl.textContent = itemKindShort(item);
     const dateEl = document.createElement('div');
     dateEl.className = 'file-date';
-    dateEl.textContent = stamp(item.createdAt);
-    card.append(thumbBox, nameEl, dateEl);
+    dateEl.textContent = formatShortDate(item.createdAt);
+    if (isList) card.append(chk, thumbBox, nameEl, kindEl, dateEl);
+    else card.append(thumbBox, nameEl, kindEl, dateEl);
     card.addEventListener('click', () => {
       if (filesState.selecting) {
         if (filesState.selectedIds.has(item.id)) filesState.selectedIds.delete(item.id);
@@ -903,6 +1076,15 @@ function buildFilesUI() {
       const fpt = $('#filesPaneTitle');
       if (fpt) fpt.textContent = tab.querySelector('span')?.textContent || 'Files';
       closeFilePreview();
+      renderFiles();
+    });
+  });
+  filesViewSeg?.querySelectorAll('.fview-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const nextView = btn.dataset.fview === 'list' ? 'list' : 'grid';
+      if (filesState.view === nextView) return;
+      filesState.view = nextView;
+      try { localStorage.setItem('pb_files_view', nextView); } catch (_) {}
       renderFiles();
     });
   });
@@ -982,7 +1164,6 @@ function buildFilesUI() {
 
   // macOS Finder Quick Look listeners
   qlCloseBtn?.addEventListener('click', closeQuickLook);
-  qlExitBtn?.addEventListener('click', closeQuickLook);
   quickLookEl?.addEventListener('click', (e) => {
     if (e.target === quickLookEl) closeQuickLook();
   });

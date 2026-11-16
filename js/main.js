@@ -117,6 +117,7 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Escape') {
     if (typeof closeEmergencyResetModal === 'function' && closeEmergencyResetModal()) return;
+    if (typeof closeWelcomeModal === 'function' && closeWelcomeModal()) return;
     if (shareMenuEl && !shareMenuEl.hidden) { closeShareMenu(); return; }
     if (qrModalEl && !qrModalEl.hidden) { closeQrModal(); return; }
     if (typeof quickLookState !== 'undefined' && quickLookState.open) { closeQuickLook(); return; }
@@ -151,7 +152,8 @@ document.addEventListener('keydown', (e) => {
   const w = focusedWin;
   if (!w || w.minimized || w.closing) return;
   if (e.code === 'Space') {
-    if (['INPUT', 'TEXTAREA', 'SELECT', 'VIDEO'].includes(e.target.tagName)) return;
+    if (typeof welcomeModalEl !== 'undefined' && welcomeModalEl && !welcomeModalEl.hidden) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT', 'VIDEO', 'BUTTON'].includes(e.target.tagName)) return;
     e.preventDefault();
     if (!e.repeat) w.onShutter(e);
   } else if (w.effectsOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
@@ -232,6 +234,7 @@ function loop(now = performance.now()) {
   }
 
   uploadFrame();
+  if (typeof tickArDetection === 'function') tickArDetection(now);
   for (const w of windows) {
     if (w.minimized || w.closing) continue;
     if (w.canvas.width !== vw || w.canvas.height !== vh) {
@@ -256,7 +259,13 @@ function bootPhotoBoothApp() {
   loadWallpaperPref();
   initDefaultWindows();
   loadItems();
-  startCamera();
+  if (typeof openWelcomeModal === 'function' && openWelcomeModal()) {
+    if (typeof setCameraMessage === 'function') {
+      setCameraMessage('Click Continue on the Welcome prompt to allow Camera & Microphone access.');
+    }
+  } else {
+    startCamera();
+  }
   requestAnimationFrame(loop);
 }
 

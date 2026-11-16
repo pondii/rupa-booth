@@ -119,6 +119,7 @@ function itemToFile(item) {
 function closeShareMenu() {
   if (!shareMenuEl) return;
   shareMenuEl.hidden = true;
+  shareMenuEl.style.display = 'none';
   shareMenuItems = [];
   shareMenuAnchor = null;
 }
@@ -141,6 +142,10 @@ function openShareMenu(items, anchorEl) {
   }
   shareMenuEl.removeAttribute('hidden');
   shareMenuEl.hidden = false;
+  shareMenuEl.style.display = 'flex';
+  shareMenuEl.style.opacity = '1';
+  shareMenuEl.style.visibility = 'visible';
+  shareMenuEl.style.zIndex = '9500';
 
   const vw = document.documentElement.clientWidth || innerWidth;
   const vh = document.documentElement.clientHeight || innerHeight;
@@ -458,19 +463,16 @@ async function openQrTransferModal(items) {
 
   const totalBytes = items.reduce((s, i) => s + (i.blob ? i.blob.size : 0), 0);
   if (qrItemSummaryEl) {
-    qrItemSummaryEl.textContent = items.length === 1
-      ? `${itemFileName(items[0])} (${formatBytes(totalBytes)})`
-      : `${items.length} files selected (${formatBytes(totalBytes)})`;
+    const unit = items.length === 1 ? 'file' : 'files';
+    qrItemSummaryEl.textContent = `${items.length} ${unit} · ${formatBytes(totalBytes)}`;
   }
-  const isLocalHost = ['localhost', '127.0.0.1'].includes(location.hostname);
-  if (qrLocalHintEl) qrLocalHintEl.hidden = !isLocalHost;
   if (qrRefreshBtn) qrRefreshBtn.hidden = true;
   qrModalEl.querySelector('.qr-paper')?.classList.remove('expired');
   if (qrExpireBadgeEl) {
     qrExpireBadgeEl.classList.remove('warn', 'expired');
     qrExpireBadgeEl.textContent = '03:00';
   }
-  if (qrStatusEl) qrStatusEl.textContent = 'Preparing encrypted host…';
+  if (qrStatusEl) qrStatusEl.textContent = 'Preparing…';
   qrModalEl.hidden = false;
 
   const roomId = `rb-${randToken(5)}`;
@@ -479,9 +481,8 @@ async function openQrTransferModal(items) {
   const basePath = `${location.origin}${location.pathname}`;
   const shareUrl = `${basePath}?dl=${encodeURIComponent(roomId)}#k=${u8ToB64Url(rawKey)}`;
   if (qrCanvasEl && typeof drawQrCanvas === 'function') {
-    drawQrCanvas(qrCanvasEl, shareUrl, 220);
+    drawQrCanvas(qrCanvasEl, shareUrl, 212);
   }
-  if (qrLinkInputEl) qrLinkInputEl.value = shareUrl;
 
   const session = {
     roomId,
@@ -513,7 +514,7 @@ async function openQrTransferModal(items) {
       clearInterval(session.tickTimer);
       qrModalEl.querySelector('.qr-paper')?.classList.add('expired');
       if (qrRefreshBtn) qrRefreshBtn.hidden = false;
-      if (qrStatusEl) qrStatusEl.textContent = 'QR session expired (3 min) — click Regenerate.';
+      if (qrStatusEl) qrStatusEl.textContent = 'QR expired';
       session.peers.forEach(async (peer) => {
         if (peer.dc && peer.dc.readyState === 'open') {
           try { peer.dc.send(await encryptPacket(cryptoKey, packJsonFrame({ t: 'expired' }))); } catch (_) {}
@@ -549,12 +550,12 @@ async function openQrTransferModal(items) {
         dc.onopen = async () => {
           if (entry.sent || session.closed || session.expired) return;
           entry.sent = true;
-          if (qrStatusEl) qrStatusEl.textContent = 'Phone connected — encrypting & sending…';
+          if (qrStatusEl) qrStatusEl.textContent = 'Sending…';
           const ok = await streamEncryptedItems(dc, session.items, session.cryptoKey, session);
           if (ok && !session.closed) {
             session.sentCount += 1;
             const unit = session.sentCount === 1 ? 'device' : 'devices';
-            if (qrStatusEl) qrStatusEl.textContent = `Sent encrypted to ${session.sentCount} ${unit}!`;
+            if (qrStatusEl) qrStatusEl.textContent = `Sent to ${session.sentCount} ${unit}!`;
           }
         };
       };
@@ -580,7 +581,7 @@ async function openQrTransferModal(items) {
     }
   });
 
-  if (qrStatusEl) qrStatusEl.textContent = 'Waiting for phone to scan QR… (expires in 3 min)';
+  if (qrStatusEl) qrStatusEl.textContent = 'Ready to scan';
 }
 
 qrCloseBtn?.addEventListener('click', closeQrModal);

@@ -2,7 +2,7 @@
 
 /* ---------------------- Camera-Style Bottom Watermark (Leica / ZEISS inspired) ---------------------- */
 const WM_BRAND = 'Rupa Booth';
-const WM_FONT_STACK = '"Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
+const WM_FONT_STACK = '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 
 function formatWatermarkDate(ts = Date.now()) {
   const d = new Date(ts);

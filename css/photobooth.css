@@ -7,7 +7,7 @@
   --gap: 8px;
   display: flex; flex-direction: column; gap: var(--gap);
   padding: 0 var(--inner) var(--inner); border-radius: 18px;
-  background: rgba(30, 31, 36, .78);
+  background: rgba(28, 29, 34, .68);
   -webkit-backdrop-filter: blur(48px) saturate(200%); backdrop-filter: blur(48px) saturate(200%);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.24),
@@ -18,7 +18,7 @@
   animation: appear .38s var(--spring) both;
 }
 .window.focused {
-  background: rgba(34, 35, 42, .84);
+  background: rgba(32, 33, 40, .74);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.32),
     inset 0 0 0 .5px rgba(255,255,255,.22),
@@ -118,9 +118,17 @@ body.win-dragging { cursor: grabbing; }
 .fx-nav svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .fx-nav:hover { background: rgba(30,30,34,.8); } .fx-nav:active { transform: scale(.92); }
 .fx-nav.off { opacity: 0; pointer-events: none; }
+.fx-cat-pill {
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 3;
+  padding: 3px 11px; border-radius: 999px; pointer-events: none;
+  font-size: 11px; font-weight: 600; letter-spacing: .1px;
+  color: rgba(255,255,255,.92); background: rgba(24,25,30,.68);
+  border: 1px solid rgba(255,255,255,.14);
+}
 .fx-dots {
-  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 3;
-  display: flex; gap: 7px; padding: 6px 10px; border-radius: 999px; background: rgba(30,30,34,.6);
+  position: absolute; left: 50%; top: 34px; transform: translateX(-50%); z-index: 3;
+  display: flex; gap: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(24,25,30,.64);
+  border: 1px solid rgba(255,255,255,.1);
 }
 .fx-dots button { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.35); transition: background .2s, transform .3s var(--spring); }
 .fx-dots button.on { background: #fff; transform: scale(1.25); }
@@ -190,7 +198,7 @@ body.win-dragging { cursor: grabbing; }
   height: var(--strip); flex: none; display: flex; align-items: center; gap: 12px; padding: 4px 12px;
   overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
 }
-.library::-webkit-scrollbar { display: none; }
+.library::-webkit-scrollbar { display: none !important; width: 0; height: 0; }
 .thumb:first-child { margin-left: auto; }
 .thumb {
   position: relative; flex: none; height: 100%; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden;
@@ -214,14 +222,14 @@ body.win-dragging { cursor: grabbing; }
 }
 .right {
   display: flex; align-items: center; justify-self: end; width: max-content;
-  padding: 3px; border-radius: 8px; background: rgba(255,255,255,.12);
+  gap: 4px; padding: 2px 3px; border-radius: 7px; background: rgba(255,255,255,.12);
 }
 .right .btn.icon-btn {
-  width: 32px; height: 26px; border-radius: 6px; background: transparent;
+  width: 28px; height: 22px; border-radius: 5.5px; background: transparent;
 }
 .right .btn.icon-btn:hover { background: rgba(255,255,255,.12); }
 .right .btn.icon-btn svg {
-  width: 17px; height: 17px; stroke: rgba(255,255,255,.75); stroke-width: 1.7;
+  width: 14px; height: 14px; stroke: rgba(255,255,255,.75); stroke-width: 1.75;
   transition: stroke .2s, transform .35s var(--spring);
 }
 .right .btn.icon-btn:hover svg,
@@ -237,7 +245,7 @@ body.win-dragging { cursor: grabbing; }
 .right .flash-btn.on {
   background: rgba(255, 214, 10, .24);
   color: #ffd60a;
-  box-shadow: inset 0 0 0 1px rgba(255, 214, 10, .65), 0 0 10px rgba(255, 214, 10, .25);
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 10, .65), 0 0 8px rgba(255, 214, 10, .22);
 }
 .right .flash-btn.on svg { stroke: #ffd60a; fill: rgba(255, 214, 10, .35); }
 .window .btn:not(.icon-btn) {
@@ -245,21 +253,21 @@ body.win-dragging { cursor: grabbing; }
 }
 
 .modes {
-  position: relative; display: flex; width: max-content; padding: 3px; border-radius: 8px;
+  position: relative; display: flex; width: max-content; gap: 2px; padding: 2px; border-radius: 7px;
   background: rgba(255,255,255,.12);
 }
 .modes .ind {
-  position: absolute; top: 3px; left: 3px; width: 32px; height: 26px; border-radius: 6px;
+  position: absolute; top: 2px; left: 2px; width: 28px; height: 22px; border-radius: 5.5px;
   background: #0a7aff;
   transition: transform .5s var(--spring);
 }
-.modes[data-active="1"] .ind { transform: translateX(32px); }
-.modes[data-active="2"] .ind { transform: translateX(64px); }
+.modes[data-active="1"] .ind { transform: translateX(30px); }
+.modes[data-active="2"] .ind { transform: translateX(60px); }
 .mode {
-  position: relative; z-index: 1; width: 32px; height: 26px; display: flex; align-items: center; justify-content: center;
-  border-radius: 6px;
+  position: relative; z-index: 1; width: 28px; height: 22px; display: flex; align-items: center; justify-content: center;
+  border-radius: 5.5px;
 }
-.mode svg { width: 17px; height: 17px; fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; transition: stroke .2s, transform .35s var(--spring); }
+.mode svg { width: 14px; height: 14px; fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; transition: stroke .2s, transform .35s var(--spring); }
 .mode:hover svg { stroke: #fff; transform: scale(1.1); }
 .mode:active svg { transform: scale(.88); }
 .mode.active svg { stroke: #fff; }
@@ -267,28 +275,21 @@ body.win-dragging { cursor: grabbing; }
 .shutter {
   position: relative; width: 50px; height: 50px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background:
-    radial-gradient(ellipse 70% 45% at 50% 14%, rgba(255,255,255,.55), rgba(255,255,255,0) 100%),
-    radial-gradient(circle at 50% 85%, #ff4a3d 0%, #e3170b 55%, #b50d04 100%);
-  border: 1px solid rgba(110, 0, 0, .55);
-  box-shadow:
-    0 0 0 3px rgba(255,255,255,.14),
-    inset 0 1px 2px rgba(255,255,255,.55),
-    inset 0 -3px 8px rgba(110,0,0,.4),
-    0 8px 22px rgba(227,23,11,.45),
-    0 2px 6px rgba(0,0,0,.35);
-  transition: transform .4s var(--spring), border-radius .3s var(--ease);
+  background: linear-gradient(180deg, #f2170f 0%, #dc0f07 100%);
+  border: 1.25px solid #ff3b30;
+  box-shadow: 0 2px 6px rgba(0,0,0,.32);
+  transition: transform .35s var(--spring), border-radius .28s var(--ease), filter .15s;
 }
-.shutter:hover { transform: scale(1.06); }
-.shutter:active { transform: scale(.92); transition-duration: .1s; }
-.shutter svg { width: 24px; height: 24px; fill: #fff; stroke: none; display: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
-.shutter .lens { fill: #d4190e; }
+.shutter:hover { transform: scale(1.05); filter: brightness(1.04); }
+.shutter:active { transform: scale(.93); transition-duration: .08s; }
+.shutter svg { width: 25px; height: 25px; fill: #fff; stroke: none; display: none; }
+.shutter .lens { fill: #e2120a; }
 .shutter[data-mode="photo"] .ico-photo, .shutter[data-mode="4up"] .ico-photo { display: block; }
 .shutter[data-mode="video"] .ico-video { display: block; }
 .shutter.recording .ico-video, .shutter.recording .ico-photo,
 .shutter.counting .ico-video, .shutter.counting .ico-photo { display: none; }
 .shutter.recording .ico-stop { display: block; }
 .shutter.counting .ico-cancel { display: block; }
-.shutter.recording, .shutter.counting { border-radius: 22px; animation: pulse 1.4s ease-in-out infinite; }
-@keyframes pulse { 50% { box-shadow: 0 0 0 3px rgba(255,255,255,.14), inset 0 1px 2px rgba(255,255,255,.55), inset 0 -3px 8px rgba(110,0,0,.4), 0 8px 34px rgba(255,59,48,.95), 0 2px 6px rgba(0,0,0,.35); } }
+.shutter.recording, .shutter.counting { border-radius: 18px; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 18px rgba(255,59,48,.78), 0 2px 6px rgba(0,0,0,.35); } }
 

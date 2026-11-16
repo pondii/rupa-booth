@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <title>Rupa Booth</title>
-  <link rel="stylesheet" href="css/base.css?v=20261116a" />
-  <link rel="stylesheet" href="css/photobooth.css?v=20261116a" />
-  <link rel="stylesheet" href="css/dock-windows.css?v=20261116a" />
-  <link rel="stylesheet" href="css/share-qr.css?v=20261116a" />
-  <link rel="stylesheet" href="css/responsive.css?v=20261116a" />
+  <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/base.css?v=20261116s" />
+  <link rel="stylesheet" href="css/photobooth.css?v=20261116aa" />
+  <link rel="stylesheet" href="css/dock-windows.css?v=20261116ad" />
+  <link rel="stylesheet" href="css/share-qr.css?v=20261116s" />
+  <link rel="stylesheet" href="css/responsive.css?v=20261116v" />
 </head>
 <body>
   <div id="app">
@@ -25,6 +26,14 @@
           </div>
         </header>
 
+        <div class="mac-search-wrap">
+          <svg class="mac-search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.2 4.2"/></svg>
+          <input type="search" id="settingsSearch" class="mac-search-input" placeholder="Search" autocomplete="off" spellcheck="false" aria-label="Search settings" />
+          <button type="button" id="settingsSearchClear" class="mac-search-clear" title="Clear" aria-label="Clear search" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/></svg>
+          </button>
+        </div>
+
         <div class="mac-sb-label">Settings</div>
         <nav class="mac-sb-nav" id="settingsNav" role="tablist" aria-label="Settings sections">
           <button type="button" class="sb-nav-btn active" data-sec="layout" role="tab" aria-selected="true">
@@ -39,6 +48,9 @@
           <button type="button" class="sb-nav-btn" data-sec="timer" role="tab" aria-selected="false">
             <i class="sb-ico sb-timer"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.8 1.8"/><path d="M9.5 2.5h5"/></svg></i><span>Timer</span>
           </button>
+          <button type="button" class="sb-nav-btn" data-sec="permissions" role="tab" aria-selected="false">
+            <i class="sb-ico sb-perm"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i><span>Permissions</span>
+          </button>
           <button type="button" class="sb-nav-btn" data-sec="about" role="tab" aria-selected="false">
             <i class="sb-ico sb-about"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.2"/><path d="M6.5 19c.9-2.8 3-4.2 5.5-4.2s4.6 1.4 5.5 4.2"/></svg></i><span>About</span>
           </button>
@@ -46,6 +58,7 @@
             <i class="sb-ico sb-reset"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg></i><span>Reset</span>
           </button>
         </nav>
+        <div id="settingsNoResults" class="mac-search-empty" hidden>No Results</div>
       </div>
 
       <div class="mac-main">
@@ -56,6 +69,7 @@
         <div class="util-body">
           <section class="set-pane" id="setPaneLayout">
             <div id="layoutGrid" class="layout-grid" role="radiogroup" aria-label="Photo Booth window layouts"></div>
+            <p class="mac-foot-note">Choose how many Photo Booth windows appear on screen.</p>
           </section>
 
           <section class="set-pane" id="setPaneWallpaper" hidden>
@@ -153,6 +167,7 @@
                 </div>
               </div>
             </div>
+            <p class="mac-foot-note">Customize the desktop background with a solid color or image.</p>
           </section>
 
           <section class="set-pane" id="setPaneFlash" hidden>
@@ -187,6 +202,7 @@
                 </div>
               </div>
             </div>
+            <p class="mac-foot-note">Flash briefly before a shot, or keep Fill Light active while recording.</p>
           </section>
 
           <section class="set-pane" id="setPaneTimer" hidden>
@@ -220,25 +236,37 @@
               </div>
             </div>
 
-            <div class="mac-group timer-notes">
+            <p class="mac-foot-note">Delay before capture starts. Set to 0s for instant shots, or press Space to cancel.</p>
+          </section>
+
+          <section class="set-pane" id="setPanePermissions" hidden>
+            <div class="mac-group">
               <div class="mac-row">
-                <span>At 0s (Instant)</span>
-                <span class="muted-val">Direct snap/record · 4-Up runs 0.5s/shot</span>
+                <span>Camera</span>
+                <div class="perm-right">
+                  <span id="permCamStatus" class="perm-pill" data-state="prompt">Not Asked</span>
+                  <button type="button" id="permCamBtn" class="mac-pill-btn">Request</button>
+                </div>
               </div>
               <div class="mac-row">
-                <span>Cancel &amp; Sound</span>
-                <span class="muted-val">Press Shutter / Space to cancel · Beep on last 3s if &gt;5s</span>
+                <span>Microphone</span>
+                <div class="perm-right">
+                  <span id="permMicStatus" class="perm-pill" data-state="prompt">Not Asked</span>
+                  <button type="button" id="permMicBtn" class="mac-pill-btn">Request</button>
+                </div>
               </div>
             </div>
+            <button type="button" id="permAllBtn" class="mac-pill-btn perm-all-btn">Request Camera &amp; Microphone</button>
+            <p class="mac-foot-note">If blocked by your browser, allow access in Site Settings and click Request again.</p>
           </section>
 
           <section class="set-pane" id="setPaneAbout" hidden>
-            <div class="mac-group about-hero">
-              <div class="about-badge">RB</div>
-              <div class="about-hero-text">
-                <h4>Rupa Booth</h4>
-                <p>macOS Multi-Window Studio · WebGL</p>
+            <div class="about-mac-hero">
+              <div class="about-logo-badge">
+                <img src="assets/logo.svg" alt="Rupa Booth logo" />
               </div>
+              <h4>Rupa Booth</h4>
+              <p>macOS Web Studio · v1.2</p>
             </div>
             <div class="mac-group">
               <div class="mac-row">
@@ -253,10 +281,27 @@
                 </a>
               </div>
               <div class="mac-row">
-                <span>Layouts</span>
-                <span class="muted-val">1 – 5 Windows</span>
+                <span>Privacy</span>
+                <span class="muted-val">On-Device Only</span>
+              </div>
+              <div class="mac-row">
+                <span>QR Transfer</span>
+                <span class="muted-val">AES-256-GCM · P2P</span>
+              </div>
+              <div class="mac-row">
+                <span>Storage</span>
+                <span id="aboutStorageVal" class="muted-val">IndexedDB · 0 items</span>
+              </div>
+              <div class="mac-row">
+                <span>Graphics</span>
+                <span class="muted-val">WebGL · Canvas 2D</span>
+              </div>
+              <div class="mac-row">
+                <span>Welcome Guide</span>
+                <button type="button" id="aboutWelcomeBtn" class="mac-pill-btn">Show</button>
               </div>
             </div>
+            <p class="mac-foot-note">Camera feeds, photos, and videos are processed locally and never uploaded to any server.</p>
           </section>
 
           <section class="set-pane" id="setPaneReset" hidden>
@@ -266,7 +311,7 @@
               </div>
               <div class="about-hero-text">
                 <h4>Reset App &amp; Clear Data</h4>
-                <p>Fix broken layouts and wipe all saved photos, videos, screenshots, wallpaper, and preferences stored in this browser.</p>
+                <p>Restore default layout and clear local browser storage.</p>
               </div>
             </div>
             <div class="mac-group">
@@ -293,6 +338,7 @@
                 </div>
               </div>
             </div>
+            <p class="mac-foot-note">Erases all saved media and resets preferences. You can also press Alt+Shift+R anytime.</p>
           </section>
         </div>
       </div>
@@ -329,10 +375,17 @@
       <div class="mac-main">
         <header class="titlebar mac-main-top files-top">
           <span class="mac-pane-title" id="filesPaneTitle">All</span>
-          <button type="button" id="filesSelectBtn" class="btn icon-btn files-sel-toggle" title="Select" aria-label="Select" hidden>
-            <svg class="ico-sel" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/></svg>
-            <svg class="ico-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
-          </button>
+          <div class="files-top-tools" id="filesTopTools">
+            <div class="files-view-seg" id="filesViewSeg" role="group" aria-label="View mode">
+              <button type="button" class="fview-btn active" data-fview="grid" title="Icon View" aria-label="Icon View" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.4"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.4"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.4"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.4"/></svg>
+              </button>
+              <button type="button" class="fview-btn" data-fview="list" title="List View" aria-label="List View" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6.5h11.5M8.5 12h11.5M8.5 17.5h11.5"/><circle cx="4.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="17.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+              </button>
+            </div>
+            <button type="button" id="filesSelectBtn" class="files-sel-toggle" title="Select" aria-label="Select" hidden>Select</button>
+          </div>
         </header>
 
         <div class="files-body">
@@ -703,6 +756,7 @@
           <button type="button" class="fx-nav next" aria-label="Next page">
             <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
           </button>
+          <div class="fx-cat-pill">Color &amp; Film</div>
           <div class="fx-dots"></div>
         </div>
 
@@ -732,7 +786,7 @@
         </div>
 
         <button class="shutter" type="button" data-mode="photo" title="Take photo (Space) — Option-click to skip countdown">
-          <svg class="ico-photo" viewBox="0 0 24 24"><path d="M9 4 7.6 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.6L15 4z"/><circle cx="12" cy="12.5" r="3.6" class="lens"/></svg>
+          <svg class="ico-photo" viewBox="0 0 24 24"><path d="M9.2 5 7.6 7H4.8A2.3 2.3 0 0 0 2.5 9.3v8.4A2.3 2.3 0 0 0 4.8 20h14.4a2.3 2.3 0 0 0 2.3-2.3V9.3A2.3 2.3 0 0 0 19.2 7h-2.8L14.8 5z"/><circle cx="12" cy="13.3" r="4.2" class="lens"/><circle cx="12" cy="13.3" r="2.2"/><circle cx="18.2" cy="9.9" r="1.15" class="lens"/></svg>
           <svg class="ico-video" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M16.5 10.2 21.5 7v10l-5-3.2z"/></svg>
           <svg class="ico-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>
           <svg class="ico-cancel" viewBox="0 0 24 24"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
@@ -795,40 +849,33 @@
     </div>
   </div>
 
-  <!-- E2E Encrypted WebRTC QR Host Modal -->
+  <!-- E2E Encrypted WebRTC QR Host Modal (macOS Style) -->
   <div id="qrModal" class="qr-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div class="qr-card">
-      <div class="qr-head">
-        <div class="qr-title-wrap">
-          <i class="sm-ico sm-qr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg></i>
-          <h3 id="qrTitle">QR</h3>
+      <header class="qr-bar">
+        <div class="lights">
+          <button type="button" class="light close" id="qrCloseBtn" title="Close" aria-label="Close"></button>
+        </div>
+        <h3 id="qrTitle" class="qr-title">Scan QR</h3>
+        <div class="qr-tools">
+          <button type="button" id="qrRefreshBtn" class="btn icon-btn primary" title="New QR Code" aria-label="New QR Code" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.7M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.7M20 20v-5h-5"/></svg>
+          </button>
+          <button type="button" id="qrCopyBtn" class="btn icon-btn" title="Copy Link" aria-label="Copy Link">
+            <svg class="ico-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <svg class="ico-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="qr-body">
+        <div class="qr-paper">
+          <canvas id="qrCanvas" width="212" height="212"></canvas>
+        </div>
+        <div id="qrItemSummary" class="qr-summary"></div>
+        <div class="qr-status-row">
+          <span id="qrStatus" class="qr-status">Ready to scan</span>
           <span id="qrExpireBadge" class="qr-expire">03:00</span>
         </div>
-        <button type="button" id="qrCloseBtn" class="btn icon-btn qr-x" title="Close & Disable Link" aria-label="Close">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-      </div>
-      <div id="qrItemSummary" class="qr-summary"></div>
-      <div class="qr-stage">
-        <div class="qr-paper">
-          <canvas id="qrCanvas" width="220" height="220"></canvas>
-        </div>
-        <div class="qr-sec-pill">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-          <span>AES-256-GCM · P2P</span>
-        </div>
-      </div>
-      <div id="qrStatus" class="qr-status">Waiting for device…</div>
-      <input type="text" id="qrLinkInput" class="qr-link-input" readonly aria-label="Encrypted QR link" />
-      <div id="qrLocalHint" class="qr-hint" hidden>Opening on <code>localhost</code> only works on this device; open the live URL (<code>pondii.github.io/rupa-booth</code>) so your phone can scan across Wi-Fi.</div>
-      <div class="qr-foot">
-        <button type="button" id="qrCopyBtn" class="btn icon-btn" title="Copy Link" aria-label="Copy Link">
-          <svg class="ico-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <svg class="ico-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
-        </button>
-        <button type="button" id="qrRefreshBtn" class="btn icon-btn primary" title="Regenerate QR Code" aria-label="Regenerate QR Code" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.7M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.7M20 20v-5h-5"/></svg>
-        </button>
       </div>
     </div>
   </div>
@@ -851,9 +898,6 @@
           <button type="button" id="qlDlBtn" class="btn icon-btn" title="Download" aria-label="Download">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           </button>
-          <button type="button" id="qlExitBtn" class="btn icon-btn" title="Exit Full Screen (Space / Esc)" aria-label="Exit Full Screen">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 20v-5h5M4 9l5-5M20 15l-5 5"/></svg>
-          </button>
         </div>
       </header>
       <div class="ql-stage" id="qlStage">
@@ -865,6 +909,60 @@
         <button type="button" id="qlNextBtn" class="ql-nav next" title="Next (Right Arrow)" aria-label="Next file" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- First-Visit / Session macOS Welcome & Privacy Sheet -->
+  <div id="welcomeModal" class="welcome-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="welcome-card">
+      <header class="welcome-bar">
+        <div class="lights">
+          <button type="button" class="light close" id="welcomeCloseBtn" title="Close" aria-label="Close"></button>
+        </div>
+      </header>
+
+      <div class="welcome-body">
+        <div class="welcome-hero">
+          <div class="about-logo-badge welcome-logo">
+            <img src="assets/logo.svg" alt="Rupa Booth logo" />
+          </div>
+          <h2 id="welcomeTitle">Rupa Booth</h2>
+          <p>v1.2 · Private macOS studio in your browser.</p>
+        </div>
+
+        <ul class="welcome-list">
+          <li>
+            <i class="wl-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18.5 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></i>
+            <div>
+              <strong>What’s New in v1.2</strong>
+              <p>Self-hosted Face AR filters, Desktop Screenshot &amp; Video, unified UI, and Settings Permissions control.</p>
+            </div>
+          </li>
+          <li>
+            <i class="wl-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i>
+            <div>
+              <strong>On-Device Privacy</strong>
+              <p>Camera, mic, and saved files stay locally — and camera access turns off when windows close.</p>
+            </div>
+          </li>
+          <li>
+            <i class="wl-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg></i>
+            <div>
+              <strong>Encrypted QR Transfer</strong>
+              <p>Send files peer-to-peer to your phone with AES-256-GCM encryption.</p>
+            </div>
+          </li>
+          <li>
+            <i class="wl-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 5 7.6 7H4.8A2.3 2.3 0 0 0 2.5 9.3v8.4A2.3 2.3 0 0 0 4.8 20h14.4a2.3 2.3 0 0 0 2.3-2.3V9.3A2.3 2.3 0 0 0 19.2 7h-2.8L14.8 5z"/><circle cx="12" cy="13.3" r="3.4"/></svg></i>
+            <div>
+              <strong>Quick Tips</strong>
+              <p>Press <code>Space</code> to shoot, <code>Option</code>-click to skip timer, and save backups before clearing site data.</p>
+            </div>
+          </li>
+        </ul>
+
+        <button type="button" id="welcomeStartBtn" class="welcome-cta">Continue</button>
       </div>
     </div>
   </div>
@@ -897,12 +995,13 @@
   </div>
 
   <script defer src="js/qr-lib.js?v=20261116a"></script>
-  <script defer src="js/core.js?v=20261116a"></script>
-  <script defer src="js/watermark.js?v=20261116a"></script>
-  <script defer src="js/window-manager.js?v=20261116a"></script>
-  <script defer src="js/apps-settings-files.js?v=20261116a"></script>
-  <script defer src="js/screenshot.js?v=20261116a"></script>
-  <script defer src="js/share-qr.js?v=20261116a"></script>
-  <script defer src="js/main.js?v=20261116b"></script>
+  <script defer src="js/core.js?v=20261116ac"></script>
+  <script defer src="js/ar-effects.js?v=20261116ab"></script>
+  <script defer src="js/watermark.js?v=20261116e"></script>
+  <script defer src="js/window-manager.js?v=20261116ac"></script>
+  <script defer src="js/apps-settings-files.js?v=20261116w"></script>
+  <script defer src="js/screenshot.js?v=20261116y"></script>
+  <script defer src="js/share-qr.js?v=20261116q"></script>
+  <script defer src="js/main.js?v=20261116z"></script>
 </body>
 </html>

@@ -94,6 +94,7 @@ function updateDock() {
   dockDivider.hidden = minPB.length === 0 && minUtils.length === 0;
   dockMin.innerHTML = '';
   if (typeof updateFillLight === 'function') updateFillLight();
+  if (typeof syncCameraHardware === 'function') syncCameraHardware();
 
   for (const w of minPB) {
     const btn = document.createElement('button');
@@ -247,11 +248,14 @@ function createWindow(opts = {}) {
 
     const dot = document.createElement('button');
     dot.type = 'button';
-    dot.setAttribute('aria-label', 'Effects page ' + (pi + 1));
+    const catName = EFFECT_CATEGORIES[pi] || ('Page ' + (pi + 1));
+    dot.title = catName;
+    dot.setAttribute('aria-label', catName);
     dot.addEventListener('click', () => inst.setFxPage(pi));
     fxDots.appendChild(dot);
   });
 
+  const fxCatPill = el.querySelector('.fx-cat-pill');
   inst.setFxPage = (i, animate = true) => {
     i = Math.max(0, Math.min(PAGES.length - 1, i));
     inst.fxPage = i;
@@ -259,9 +263,11 @@ function createWindow(opts = {}) {
     fxTrack.style.transform = `translateX(${-i * 100}%)`;
     if (!animate) { void fxTrack.offsetWidth; fxTrack.style.transition = ''; }
     inst.fxAnimUntil = performance.now() + (animate ? 550 : 0);
+    if (fxCatPill) fxCatPill.textContent = EFFECT_CATEGORIES[i] || '';
     [...fxDots.children].forEach((d, k) => d.classList.toggle('on', k === i));
     fxPrev.classList.toggle('off', i === 0);
     fxNext.classList.toggle('off', i === PAGES.length - 1);
+    if (i === 3 && typeof initArEngine === 'function') initArEngine();
   };
 
   fxPrev.addEventListener('click', () => inst.setFxPage(inst.fxPage - 1));
@@ -284,7 +290,7 @@ function createWindow(opts = {}) {
       const visible = t.page === inst.fxPage || (animating && Math.abs(t.page - inst.fxPage) <= 1);
       if (!visible) continue;
       if (t.c.width !== tw || t.c.height !== th) { t.c.width = tw; t.c.height = th; }
-      renderEffect(t.x, 0, 0, tw, th, t.fx);
+      renderEffect(t.x, 0, 0, tw, th, t.fx, true);
       t.btn.classList.toggle('active', t.fx === inst.effect);
     }
   };
@@ -427,13 +433,15 @@ function createWindow(opts = {}) {
   }
 
   async function startRecording(skipCountdown) {
-    if (!window.MediaRecorder) return inst.showMessage('Recording is not supported in this browser.');
+    if (!window.MediaRecorder || typeof HTMLCanvasElement.prototype.captureStream !== 'function') {
+      return inst.showMessage('Video recording is not supported in this browser.');
+    }
     const ctl = { cancelled: false };
     const delaySec = skipCountdown ? 0 : getTimerSeconds();
     inst.ctl = ctl; inst.busy = true;
     syncShutterUI(true);
     try {
-      if (!micStream) {
+      if (!micStream || !micStream.getAudioTracks().some((t) => t.readyState === 'live')) {
         try { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (_) { micStream = null; }
       }
       if (ctl.cancelled) throw 'cancelled';

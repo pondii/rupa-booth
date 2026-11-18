@@ -111,17 +111,98 @@ function updateSliderTracks() {
   void hr; void hg; void hb;
 }
 
+function hasRetroWallOverride() {
+  try { return localStorage.getItem('pb.retroWallOverride') === '1'; } catch (_) { return false; }
+}
+
+function setRetroWallOverride(on) {
+  try {
+    if (on) localStorage.setItem('pb.retroWallOverride', '1');
+    else localStorage.removeItem('pb.retroWallOverride');
+  } catch (_) { /* ignore */ }
+}
+
+function getRetroGridColor(hex, skin = document.documentElement.dataset.skin) {
+  const rgb = typeof hexToRgb === 'function' ? hexToRgb(hex) : null;
+  if (!rgb) return skin === 'sweet-98' ? 'rgba(43, 70, 139, .12)' : 'rgba(9, 44, 41, .42)';
+  const lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+  if (lum < 0.20) return 'rgba(255, 255, 255, .15)';
+  if (lum > 0.72) return skin === 'sweet-98' ? 'rgba(43, 70, 139, .14)' : 'rgba(24, 24, 27, .20)';
+  return skin === 'sweet-98' ? 'rgba(43, 70, 139, .14)' : 'rgba(9, 44, 41, .38)';
+}
+window.getRetroGridColor = getRetroGridColor;
+
+function makeGridBgImage(lineCol) {
+  return `linear-gradient(to right, ${lineCol} 1px, transparent 1px), linear-gradient(to bottom, ${lineCol} 1px, transparent 1px)`;
+}
+
 function applyWallpaper() {
-  appEl.style.backgroundColor = wallState.color;
+  const skin = document.documentElement.dataset.skin;
+  const isCustomSkin = skin === 'retro-pop' || skin === 'sweet-98';
   const mini = $('#wallMiniStage');
+  const hasPhoto = wallState.tab === 'photo' && Boolean(wallState.imgUrl);
+
+  if (isCustomSkin && !hasRetroWallOverride()) {
+    delete appEl.dataset.customBg;
+    delete appEl.dataset.wallPhoto;
+    appEl.style.backgroundColor = '';
+    appEl.style.backgroundImage = '';
+    appEl.style.backgroundSize = '';
+    appEl.style.backgroundRepeat = '';
+    appEl.style.backgroundPosition = '';
+    if (mini) {
+      const defBg = skin === 'sweet-98' ? '#82A3C6' : '#1D7E75';
+      const defGrid = skin === 'sweet-98' ? 'rgba(43,70,139,.14)' : 'rgba(9,44,41,.42)';
+      mini.style.backgroundColor = defBg;
+      mini.style.backgroundImage = makeGridBgImage(defGrid);
+      mini.style.backgroundSize = skin === 'sweet-98' ? '12px 12px' : '16px 16px';
+      mini.style.backgroundRepeat = 'repeat';
+    }
+    return;
+  }
+
+  if (isCustomSkin) appEl.dataset.customBg = '1';
+  else delete appEl.dataset.customBg;
+
+  appEl.style.backgroundColor = wallState.color;
   if (mini) mini.style.backgroundColor = wallState.color;
-  if (wallState.tab === 'photo' && wallState.imgUrl) {
+
+  if (hasPhoto) {
+    if (isCustomSkin) appEl.dataset.wallPhoto = '1';
+    else delete appEl.dataset.wallPhoto;
     appEl.style.backgroundImage = `url("${wallState.imgUrl}")`;
     appEl.style.backgroundSize = wallState.fit;
-    if (mini) { mini.style.backgroundImage = `url("${wallState.imgUrl}")`; mini.style.backgroundSize = wallState.fit; }
+    appEl.style.backgroundRepeat = 'no-repeat';
+    appEl.style.backgroundPosition = 'center';
+    if (mini) {
+      mini.style.backgroundImage = `url("${wallState.imgUrl}")`;
+      mini.style.backgroundSize = wallState.fit;
+      mini.style.backgroundRepeat = 'no-repeat';
+    }
+  } else if (isCustomSkin) {
+    delete appEl.dataset.wallPhoto;
+    const gridCol = getRetroGridColor(wallState.color, skin);
+    const tileSz = skin === 'sweet-98' ? '24px 24px' : '38px 38px';
+    appEl.style.backgroundImage = makeGridBgImage(gridCol);
+    appEl.style.backgroundSize = tileSz;
+    appEl.style.backgroundRepeat = 'repeat';
+    appEl.style.backgroundPosition = '0 0';
+    if (mini) {
+      mini.style.backgroundImage = makeGridBgImage(gridCol);
+      mini.style.backgroundSize = skin === 'sweet-98' ? '12px 12px' : '16px 16px';
+      mini.style.backgroundRepeat = 'repeat';
+    }
   } else {
+    delete appEl.dataset.wallPhoto;
     appEl.style.backgroundImage = 'none';
-    if (mini) mini.style.backgroundImage = 'none';
+    appEl.style.backgroundSize = '';
+    appEl.style.backgroundRepeat = '';
+    appEl.style.backgroundPosition = '';
+    if (mini) {
+      mini.style.backgroundImage = 'none';
+      mini.style.backgroundSize = '';
+      mini.style.backgroundRepeat = '';
+    }
   }
 }
 
@@ -214,18 +295,23 @@ function buildWallpaperUI() {
       if (hsv.s > 0) wallState.h = hsv.h;
       wallState.s = hsv.s;
       wallState.v = hsv.v;
+      setRetroWallOverride(true);
       setWallTab('color');
       syncColorUI();
     });
     colorPresetsEl.appendChild(b);
   });
 
-  wallTabs.querySelectorAll('.wall-tab').forEach((b) => b.addEventListener('click', () => setWallTab(b.dataset.tab)));
+  wallTabs.querySelectorAll('.wall-tab').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.tab === 'photo' && wallState.imgUrl) setRetroWallOverride(true);
+    setWallTab(b.dataset.tab);
+  }));
 
   const updateSVFromPointer = (e) => {
     const rect = svCanvas.getBoundingClientRect();
     wallState.s = Math.round(clampN((e.clientX - rect.left) / rect.width, 0, 1) * 100);
     wallState.v = Math.round((1 - clampN((e.clientY - rect.top) / rect.height, 0, 1)) * 100);
+    setRetroWallOverride(true);
     setWallTab('color');
     syncColorUI();
   };
@@ -245,9 +331,9 @@ function buildWallpaperUI() {
     svWrap.addEventListener('pointercancel', up);
   });
 
-  hueSlider.addEventListener('input', () => { wallState.h = Number(hueSlider.value); setWallTab('color'); syncColorUI(); });
-  satSlider.addEventListener('input', () => { wallState.s = Number(satSlider.value); setWallTab('color'); syncColorUI(); });
-  valSlider.addEventListener('input', () => { wallState.v = Number(valSlider.value); setWallTab('color'); syncColorUI(); });
+  hueSlider.addEventListener('input', () => { wallState.h = Number(hueSlider.value); setRetroWallOverride(true); setWallTab('color'); syncColorUI(); });
+  satSlider.addEventListener('input', () => { wallState.s = Number(satSlider.value); setRetroWallOverride(true); setWallTab('color'); syncColorUI(); });
+  valSlider.addEventListener('input', () => { wallState.v = Number(valSlider.value); setRetroWallOverride(true); setWallTab('color'); syncColorUI(); });
 
   hexInput.addEventListener('input', () => {
     const rgb = hexToRgb(hexInput.value);
@@ -256,6 +342,7 @@ function buildWallpaperUI() {
     if (hsv.s > 0) wallState.h = hsv.h;
     wallState.s = hsv.s;
     wallState.v = hsv.v;
+    setRetroWallOverride(true);
     setWallTab('color');
     syncColorUI(true);
   });
@@ -266,7 +353,7 @@ function buildWallpaperUI() {
   wallDrop.addEventListener('click', () => wallFile.click());
   wallFile.addEventListener('change', () => {
     const f = wallFile.files && wallFile.files[0];
-    if (f) setWallImage(f);
+    if (f) { setRetroWallOverride(true); setWallImage(f); }
     wallFile.value = '';
   });
   wallDrop.addEventListener('dragover', (e) => { e.preventDefault(); wallDrop.classList.add('over'); });
@@ -275,9 +362,10 @@ function buildWallpaperUI() {
     e.preventDefault();
     wallDrop.classList.remove('over');
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f && f.type.startsWith('image/')) setWallImage(f);
+    if (f && f.type.startsWith('image/')) { setRetroWallOverride(true); setWallImage(f); }
   });
   wallClearBtn.addEventListener('click', () => {
+    setRetroWallOverride(false);
     setWallImage(null);
     setWallTab('color');
   });
@@ -364,6 +452,8 @@ function setSettingsSection(sec) {
     });
   }
   $('#setPaneLayout').hidden = sec !== 'layout';
+  const themePane = $('#setPaneTheme');
+  if (themePane) themePane.hidden = sec !== 'theme';
   const wallPane = $('#setPaneWallpaper');
   if (wallPane) wallPane.hidden = sec !== 'wallpaper';
   $('#setPaneFlash').hidden = sec !== 'flash';
@@ -374,8 +464,9 @@ function setSettingsSection(sec) {
   $('#setPaneAbout').hidden = sec !== 'about';
   const resetPane = $('#setPaneReset');
   if (resetPane) resetPane.hidden = sec !== 'reset';
-  const titles = { layout: 'Layout', wallpaper: 'Wallpaper', flash: 'Flash', timer: 'Timer', permissions: 'Permissions', about: 'About', reset: 'Reset' };
+  const titles = { layout: 'Layout', theme: 'Theme', wallpaper: 'Wallpaper', flash: 'Flash', timer: 'Timer', permissions: 'Permissions', about: 'About', reset: 'Reset' };
   $('#settingsPaneTitle').textContent = titles[sec] || 'Settings';
+  if (sec === 'theme' && typeof syncThemeUI === 'function') syncThemeUI();
   if (sec === 'wallpaper') {
     drawSV();
     updateSliderTracks();
@@ -405,6 +496,7 @@ function openSettingsFlash() {
 
 const SETTINGS_SEARCH_TERMS = {
   layout: 'layout window arrangement multi split center side grid camera',
+  theme: 'theme appearance mode light dark auto system accent color ui custom retro pop sweet 98 dear os win98 pastel pink blue',
   wallpaper: 'wallpaper background color photo image hue saturation brightness hex fit cover contain',
   flash: 'flash fill light pre-flash brightness glow color screen',
   timer: 'timer countdown seconds delay instant 0s 3s 5s custom beep',
@@ -447,6 +539,8 @@ function buildSettingsUI() {
       searchInput.value = '';
       applySettingsFilter();
     } else if (e.key === 'Enter' && nav) {
+      if (e.isComposing || e.keyCode === 229) return;
+      e.preventDefault();
       const first = nav.querySelector('.sb-nav-btn:not([hidden])');
       if (first) setSettingsSection(first.dataset.sec);
     }
@@ -500,7 +594,7 @@ function buildSettingsUI() {
   };
 
   if (presetsEl) {
-    presetsEl.innerHTML = '';
+    presetsEl.replaceChildren();
     for (const hex of FLASH_PRESETS) {
       const sw = document.createElement('button');
       sw.type = 'button';
@@ -629,7 +723,249 @@ function buildSettingsUI() {
   ));
   refreshPermissionsUI();
 
-  layoutGridEl.innerHTML = '';
+const THEME_MODES = [
+  { id: 'system', name: 'Auto', cls: 'theme-thumb-system' },
+  { id: 'light',  name: 'Light', cls: 'theme-thumb-light' },
+  { id: 'dark',   name: 'Dark',  cls: 'theme-thumb-dark' },
+];
+const CUSTOM_THEMES = [
+  { id: 'retro-pop', name: 'Retro Pop', cls: 'theme-thumb-retro', badge: 'Custom' },
+  { id: 'sweet-98',  name: 'Sweet 98',  cls: 'theme-thumb-sweet98', badge: 'Custom' },
+];
+const ACCENT_PRESETS = [
+  { id: 'blue',     name: 'Blue',     hex: '#0A84FF' },
+  { id: 'purple',   name: 'Purple',   hex: '#AF52DE' },
+  { id: 'pink',     name: 'Pink',     hex: '#FF2D55' },
+  { id: 'orange',   name: 'Orange',   hex: '#FF9500' },
+  { id: 'green',    name: 'Green',    hex: '#28CD41' },
+  { id: 'graphite', name: 'Graphite', hex: '#6E6E73' },
+];
+const themeColorQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+function getStoredThemeMode() {
+  try {
+    const v = localStorage.getItem('pb.theme');
+    return v === 'light' || v === 'dark' || v === 'retro-pop' || v === 'sweet-98' ? v : 'system';
+  } catch (_) {
+    return 'system';
+  }
+}
+
+function getStoredAccentId() {
+  try {
+    const v = localStorage.getItem('pb.accent');
+    return ACCENT_PRESETS.some((a) => a.id === v) ? v : 'blue';
+  } catch (_) {
+    return 'blue';
+  }
+}
+
+function getResolvedTheme(mode = getStoredThemeMode()) {
+  if (mode === 'retro-pop' || mode === 'sweet-98') return 'light';
+  if (mode === 'light' || mode === 'dark') return mode;
+  return themeColorQuery && themeColorQuery.matches ? 'dark' : 'light';
+}
+
+function syncThemeDocument(mode = getStoredThemeMode(), accentId = getStoredAccentId()) {
+  const isCustomSkin = mode === 'retro-pop' || mode === 'sweet-98';
+  const resolved = getResolvedTheme(mode);
+  if (colorSchemeMeta) {
+    colorSchemeMeta.content = isCustomSkin ? 'light' : (mode === 'system' ? 'light dark' : mode);
+  }
+  if (isCustomSkin) {
+    document.documentElement.dataset.theme = 'light';
+    document.documentElement.dataset.skin = mode;
+  } else {
+    delete document.documentElement.dataset.skin;
+    if (mode === 'light' || mode === 'dark') {
+      document.documentElement.dataset.theme = mode;
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+  }
+  if (accentId && accentId !== 'blue') {
+    document.documentElement.dataset.accent = accentId;
+  } else {
+    delete document.documentElement.dataset.accent;
+  }
+  if (themeColorMeta) {
+    themeColorMeta.content = mode === 'retro-pop'
+      ? '#1D7E75'
+      : mode === 'sweet-98'
+        ? '#82A3C6'
+        : (resolved === 'dark' ? '#0b0b0f' : '#eef0f5');
+  }
+  const accentObj = ACCENT_PRESETS.find((a) => a.id === accentId) || ACCENT_PRESETS[0];
+  let resolvedAccentHex = accentObj.hex;
+  if (accentObj.id === 'blue') {
+    if (mode === 'retro-pop') resolvedAccentHex = '#2563EB';
+    else if (mode === 'sweet-98') resolvedAccentHex = '#2B468B';
+  }
+  window.__rupaTheme = {
+    mode,
+    resolved,
+    skin: isCustomSkin ? mode : null,
+    accentId: accentObj.id,
+    accentHex: resolvedAccentHex,
+  };
+  if (typeof applyWallpaper === 'function') applyWallpaper();
+}
+
+function syncThemeUI() {
+  const mode = getStoredThemeMode();
+  const resolved = getResolvedTheme(mode);
+  const accentId = getStoredAccentId();
+  ['#themeModeGrid', '#customThemeGrid'].forEach((sel) => {
+    const grid = $(sel);
+    if (!grid) return;
+    grid.querySelectorAll('.theme-card').forEach((card) => {
+      const on = card.dataset.tmode === mode;
+      card.classList.toggle('active', on);
+      card.setAttribute('aria-checked', String(on));
+    });
+  });
+  const statusEl = $('#themeModeStatus');
+  if (statusEl) {
+    const resLabel = resolved === 'dark' ? 'Dark' : 'Light';
+    statusEl.textContent = mode === 'retro-pop'
+      ? 'Custom theme: Retro Pop (Neo-Brutalist Teal & Cream).'
+      : mode === 'sweet-98'
+        ? 'Custom theme: Sweet 98 (Pastel Win98 Powder Blue & Cream).'
+        : mode === 'system'
+          ? `Following system preference (Currently ${resLabel}).`
+          : `Pinned to ${mode === 'dark' ? 'Dark' : 'Light'} appearance.`;
+  }
+  const accentRow = $('#accentSwatchRow');
+  if (accentRow) {
+    accentRow.querySelectorAll('.accent-dot').forEach((btn) => {
+      const on = btn.dataset.accent === accentId;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-checked', String(on));
+    });
+  }
+}
+
+function applyThemeMode(mode, persist = true) {
+  const next = mode === 'light' || mode === 'dark' || mode === 'retro-pop' || mode === 'sweet-98' ? mode : 'system';
+  if (persist) {
+    if (next === 'retro-pop' || next === 'sweet-98') setRetroWallOverride(false);
+    try {
+      if (next === 'system') localStorage.removeItem('pb.theme');
+      else localStorage.setItem('pb.theme', next);
+    } catch (_) { /* ignore */ }
+  }
+  syncThemeDocument(next, getStoredAccentId());
+  syncThemeUI();
+}
+
+function applyAccentColor(id, persist = true) {
+  const next = ACCENT_PRESETS.some((a) => a.id === id) ? id : 'blue';
+  if (persist) {
+    try {
+      if (next === 'blue') localStorage.removeItem('pb.accent');
+      else localStorage.setItem('pb.accent', next);
+    } catch (_) { /* ignore */ }
+  }
+  syncThemeDocument(getStoredThemeMode(), next);
+  syncThemeUI();
+}
+
+function createThemeCardEl(item, isCustom) {
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = isCustom ? 'theme-card theme-card-custom' : 'theme-card';
+  card.dataset.tmode = item.id;
+  card.setAttribute('role', 'radio');
+  card.setAttribute('aria-checked', 'false');
+  card.setAttribute('aria-label', `${item.name} theme`);
+
+  const thumb = document.createElement('div');
+  thumb.className = `theme-thumb ${item.cls}`;
+  const win = document.createElement('div');
+  win.className = 'theme-mini-win';
+  const bar = document.createElement('div');
+  bar.className = 'theme-mini-bar';
+  for (let i = 0; i < 3; i++) bar.appendChild(document.createElement('i'));
+  const pill = document.createElement('span');
+  pill.className = 'theme-mini-pill';
+  win.append(bar, pill);
+  thumb.appendChild(win);
+
+  if (isCustom && item.badge) {
+    const metaRow = document.createElement('div');
+    metaRow.className = 'theme-card-top';
+    const lbl = document.createElement('span');
+    lbl.textContent = item.name;
+    const badge = document.createElement('span');
+    badge.className = 'theme-badge';
+    badge.textContent = item.badge;
+    metaRow.append(lbl, badge);
+    card.append(thumb, metaRow);
+  } else {
+    const lbl = document.createElement('span');
+    lbl.textContent = item.name;
+    card.append(thumb, lbl);
+  }
+  card.addEventListener('click', () => applyThemeMode(item.id, true));
+  return card;
+}
+
+function buildThemeUI() {
+  const modeGrid = $('#themeModeGrid');
+  if (modeGrid) {
+    modeGrid.replaceChildren();
+    for (const m of THEME_MODES) modeGrid.appendChild(createThemeCardEl(m, false));
+  }
+  const customGrid = $('#customThemeGrid');
+  if (customGrid) {
+    customGrid.replaceChildren();
+    for (const ct of CUSTOM_THEMES) customGrid.appendChild(createThemeCardEl(ct, true));
+  }
+
+  const accentRow = $('#accentSwatchRow');
+  if (accentRow) {
+    accentRow.replaceChildren();
+    for (const ac of ACCENT_PRESETS) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'accent-dot';
+      btn.dataset.accent = ac.id;
+      btn.style.background = ac.hex;
+      btn.title = ac.name;
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', 'false');
+      btn.setAttribute('aria-label', `${ac.name} accent color`);
+      btn.addEventListener('click', () => applyAccentColor(ac.id, true));
+      accentRow.appendChild(btn);
+    }
+  }
+
+  syncThemeDocument();
+  syncThemeUI();
+
+  if (themeColorQuery) {
+    const onSysChange = () => {
+      syncThemeDocument();
+      syncThemeUI();
+    };
+    if (typeof themeColorQuery.addEventListener === 'function') {
+      themeColorQuery.addEventListener('change', onSysChange);
+    } else if (typeof themeColorQuery.addListener === 'function') {
+      themeColorQuery.addListener(onSysChange);
+    }
+  }
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'pb.theme' || e.key === 'pb.accent' || e.key === 'pb.retroWallOverride' || e.key === null) {
+      syncThemeDocument();
+      syncThemeUI();
+    }
+  });
+}
+
+  buildThemeUI();
+  layoutGridEl.replaceChildren();
   for (const preset of LAYOUT_PRESETS) {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -639,10 +975,18 @@ function buildSettingsUI() {
     btn.setAttribute('role', 'radio');
     btn.setAttribute('aria-label', `${preset.name} (${preset.count} windows)`);
     btn.setAttribute('aria-checked', String(preset.id === activeLayoutId));
-    const boxesHtml = preset.boxes.map(([x, y, w, h, f]) =>
-      `<span class="lp-win${f ? ' front' : ''}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%"></span>`
-    ).join('');
-    btn.innerHTML = `<div class="layout-preview">${boxesHtml}</div>`;
+    const preview = document.createElement('div');
+    preview.className = 'layout-preview';
+    for (const [x, y, w, h, f] of preset.boxes) {
+      const box = document.createElement('span');
+      box.className = f ? 'lp-win front' : 'lp-win';
+      box.style.left = `${x}%`;
+      box.style.top = `${y}%`;
+      box.style.width = `${w}%`;
+      box.style.height = `${h}%`;
+      preview.appendChild(box);
+    }
+    btn.appendChild(preview);
     btn.addEventListener('click', () => applyLayout(preset.id, true));
     layoutGridEl.appendChild(btn);
   }
@@ -694,9 +1038,12 @@ const welcomeCloseBtn = $('#welcomeCloseBtn');
 const welcomeStartBtn = $('#welcomeStartBtn');
 const aboutWelcomeBtn = $('#aboutWelcomeBtn');
 
+let welcomePrevFocus = null;
 function openWelcomeModal() {
   if (!welcomeModalEl) return false;
+  welcomePrevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   welcomeModalEl.hidden = false;
+  if (typeof syncModalInert === 'function') syncModalInert();
   welcomeStartBtn?.focus({ preventScroll: true });
   return true;
 }
@@ -704,6 +1051,11 @@ function openWelcomeModal() {
 function closeWelcomeModal() {
   if (!welcomeModalEl || welcomeModalEl.hidden) return false;
   welcomeModalEl.hidden = true;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  if (welcomePrevFocus && welcomePrevFocus.isConnected && typeof welcomePrevFocus.focus === 'function') {
+    try { welcomePrevFocus.focus({ preventScroll: true }); } catch (_) {}
+  }
+  welcomePrevFocus = null;
   if (typeof requestInitialMediaPermissions === 'function') {
     requestInitialMediaPermissions();
   }
@@ -837,6 +1189,12 @@ function closeQuickLook() {
   quickLookState.open = false;
   quickLookState.id = null;
   quickLookEl.hidden = true;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  const prev = quickLookState.prevFocus;
+  quickLookState.prevFocus = null;
+  if (prev && prev.isConnected && typeof prev.focus === 'function') {
+    try { prev.focus({ preventScroll: true }); } catch (_) {}
+  }
 }
 
 function openQuickLook(id) {
@@ -848,6 +1206,9 @@ function openQuickLook(id) {
   toggleFpMoreMenu(false);
 
   if (quickLookState.url) { URL.revokeObjectURL(quickLookState.url); quickLookState.url = null; }
+  if (!quickLookState.open) {
+    quickLookState.prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }
   quickLookState.open = true;
   quickLookState.id = id;
   quickLookState.url = URL.createObjectURL(item.blob);
@@ -873,6 +1234,8 @@ function openQuickLook(id) {
     qlImgEl.src = quickLookState.url;
   }
   quickLookEl.hidden = false;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  qlCloseBtn?.focus({ preventScroll: true });
 }
 
 function stepQuickLook(delta) {
@@ -947,8 +1310,7 @@ function downloadFileItem(item) {
 function getVisibleFilesList() {
   return sharedItems
     .filter((item) => filesState.filter === 'all' || itemCategory(item) === filesState.filter)
-    .slice()
-    .sort((a, b) => b.createdAt - a.createdAt);
+    .toSorted((a, b) => b.createdAt - a.createdAt);
 }
 
 function syncFilesSelectionUI() {
@@ -1017,7 +1379,7 @@ function renderFiles() {
     });
   }
 
-  filesGridEl.innerHTML = '';
+  filesGridEl.replaceChildren();
   filesEmptyEl.hidden = list.length > 0;
   for (const item of list) {
     const picked = filesState.selecting && filesState.selectedIds.has(item.id);
@@ -1031,6 +1393,8 @@ function renderFiles() {
     thumbBox.className = 'file-thumb';
     const imgEl = document.createElement('img');
     imgEl.alt = '';
+    imgEl.loading = 'lazy';
+    imgEl.decoding = 'async';
     imgEl.src = thumbUrl(item);
     thumbBox.append(chk, imgEl);
     if (item.type === 'video') {
@@ -1138,6 +1502,7 @@ function buildFilesUI() {
     fpWallBtn.addEventListener('click', () => {
       const item = sharedItems.find((i) => i.id === filesState.selectedId);
       if (!item || item.type === 'video') return;
+      setRetroWallOverride(true);
       setWallImage(item.blob);
       fpWallBtn.classList.add('applied');
       setTimeout(() => {

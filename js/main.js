@@ -86,17 +86,30 @@ dockShot.addEventListener('click', () => {
 });
 
 let lastResizePhone = isPhoneViewport();
-addEventListener('resize', () => {
+let resizeRafId = 0;
+function applyResponsiveLayoutOnResize() {
+  resizeRafId = 0;
   const nowPhone = syncMobileBodyClass();
   if (nowPhone) {
     applyMobileLayoutToWindows();
   } else {
     if (lastResizePhone) {
       for (const w of windows) w.boxAR = null;
-    }
-    if (isTabletViewport()) trimExcessWindows(4);
-    for (const w of windows) {
-      if (!w.winFull && !w.minimized && !w.closing) w.applyWin('fit');
+      const picked = LAYOUT_PRESETS.find((l) => l.id === activeLayoutId);
+      const nextId = isTabletViewport() && picked && picked.count > 4 ? '4-grid' : activeLayoutId;
+      applyLayout(nextId, true);
+    } else {
+      if (isTabletViewport()) trimExcessWindows(4);
+      const reAnim = [];
+      for (const w of windows) {
+        if (!w.winFull && !w.minimized && !w.closing) {
+          if (w.el.classList.contains('anim')) { w.el.classList.remove('anim'); reAnim.push(w.el); }
+          w.applyWin('fit');
+        }
+      }
+      if (reAnim.length) {
+        requestAnimationFrame(() => reAnim.forEach((el) => el.classList.add('anim')));
+      }
     }
   }
   lastResizePhone = nowPhone;
@@ -107,6 +120,11 @@ addEventListener('resize', () => {
   }
   if (typeof syncSettingsUI === 'function') syncSettingsUI();
   updateFillLight();
+}
+
+addEventListener('resize', () => {
+  if (resizeRafId) cancelAnimationFrame(resizeRafId);
+  resizeRafId = requestAnimationFrame(applyResponsiveLayoutOnResize);
 });
 
 document.addEventListener('keydown', (e) => {
@@ -165,7 +183,13 @@ document.addEventListener('keydown', (e) => {
     else if (w.winFull) w.toggleWinFull(false);
   }
 });
-document.addEventListener('keyup', (e) => { if (e.code === 'Space') e.preventDefault(); });
+document.addEventListener('keyup', (e) => {
+  if (e.code !== 'Space') return;
+  const tag = e.target && e.target.tagName;
+  if (['INPUT', 'TEXTAREA', 'SELECT', 'VIDEO', 'BUTTON', 'A', 'SUMMARY'].includes(tag)) return;
+  if (typeof welcomeModalEl !== 'undefined' && welcomeModalEl && !welcomeModalEl.hidden) return;
+  e.preventDefault();
+});
 
 
 /* ----------------------------- Render Loop ----------------------------- */
@@ -174,6 +198,62 @@ const IDLE_FRAME_INTERVAL_MS = 100; // ~10 FPS power-save cadence after 15s idle
 let lastActivityAt = performance.now();
 let lastIdleRenderAt = 0;
 let isIdleMode = false;
+let renderRafId = 0;
+let idleLoopTimer = 0;
+
+function hasLiveRenderTarget() {
+  return windows.some((w) => !w.minimized && !w.closing && (w.effectsOpen || w.view === 'live'));
+}
+
+function shouldRunRenderLoop() {
+  if (document.hidden || !hasLiveRenderTarget()) return false;
+  return Boolean((video.videoWidth && video.videoHeight) || (typeof camStream !== 'undefined' && camStream));
+}
+
+function stopRenderLoop() {
+  if (renderRafId) {
+    cancelAnimationFrame(renderRafId);
+    renderRafId = 0;
+  }
+  if (idleLoopTimer) {
+    clearTimeout(idleLoopTimer);
+    idleLoopTimer = 0;
+  }
+}
+
+function scheduleNextFrame(delayMs = 0) {
+  if (!shouldRunRenderLoop()) {
+    stopRenderLoop();
+    return;
+  }
+  if (delayMs > 0) {
+    if (!idleLoopTimer && !renderRafId) {
+      idleLoopTimer = setTimeout(() => {
+        idleLoopTimer = 0;
+        if (!renderRafId && shouldRunRenderLoop()) renderRafId = requestAnimationFrame(loop);
+      }, delayMs);
+    }
+    return;
+  }
+  if (idleLoopTimer) {
+    clearTimeout(idleLoopTimer);
+    idleLoopTimer = 0;
+  }
+  if (!renderRafId) renderRafId = requestAnimationFrame(loop);
+}
+
+function ensureRenderLoop() {
+  if (!shouldRunRenderLoop()) {
+    stopRenderLoop();
+    return;
+  }
+  if (idleLoopTimer) {
+    clearTimeout(idleLoopTimer);
+    idleLoopTimer = 0;
+  }
+  if (!renderRafId) renderRafId = requestAnimationFrame(loop);
+}
+window.ensureRenderLoop = ensureRenderLoop;
 
 function setIdlePowerMode(idle) {
   if (isIdleMode === idle) return;
@@ -191,8 +271,10 @@ function hasActiveCaptureWork(now) {
 function noteUserActivity(force = false) {
   const now = performance.now();
   if (!force && !isIdleMode && now - lastActivityAt < 120) return;
+  const wasIdle = isIdleMode;
   lastActivityAt = now;
   if (isIdleMode) setIdlePowerMode(false);
+  if (wasIdle && shouldRunRenderLoop()) ensureRenderLoop();
 }
 
 for (const evt of ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'wheel']) {
@@ -203,15 +285,25 @@ for (const evt of ['pointermove', 'mousemove']) {
 }
 window.addEventListener('focus', () => noteUserActivity(true));
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) noteUserActivity(true);
+  if (document.hidden) {
+    stopRenderLoop();
+  } else {
+    noteUserActivity(true);
+    ensureRenderLoop();
+  }
 });
+video.addEventListener('loadedmetadata', () => ensureRenderLoop());
+video.addEventListener('playing', () => ensureRenderLoop());
 document.documentElement.dataset.powerMode = 'active';
 
 function loop(now = performance.now()) {
-  requestAnimationFrame(loop);
-  if (document.hidden) return;
+  renderRafId = 0;
+  if (!shouldRunRenderLoop()) return;
   const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw || !vh) return;
+  if (!vw || !vh) {
+    scheduleNextFrame(0);
+    return;
+  }
   if (cameraAR !== vw / vh) {
     cameraAR = vw / vh;
     document.documentElement.style.setProperty('--ar', cameraAR.toFixed(4));
@@ -219,16 +311,19 @@ function loop(now = performance.now()) {
       if (w.winReady && !w.winFull && !w.minimized) w.applyWin('fit');
     }
   }
-  const needsLive = windows.some((w) => !w.minimized && !w.closing && (w.effectsOpen || w.view === 'live'));
-  if (!needsLive) return;
 
+  let delayMs = 0;
   if (hasActiveCaptureWork(now)) {
     lastActivityAt = now;
     if (isIdleMode) setIdlePowerMode(false);
   } else if (now - lastActivityAt >= IDLE_TIMEOUT_MS) {
     if (!isIdleMode) setIdlePowerMode(true);
-    if (lastIdleRenderAt && now - lastIdleRenderAt < IDLE_FRAME_INTERVAL_MS) return;
+    if (lastIdleRenderAt && now - lastIdleRenderAt < IDLE_FRAME_INTERVAL_MS) {
+      scheduleNextFrame(Math.max(16, IDLE_FRAME_INTERVAL_MS - (now - lastIdleRenderAt)));
+      return;
+    }
     lastIdleRenderAt = now;
+    delayMs = IDLE_FRAME_INTERVAL_MS;
   } else if (isIdleMode) {
     setIdlePowerMode(false);
   }
@@ -243,6 +338,7 @@ function loop(now = performance.now()) {
     if (w.effectsOpen) w.renderTiles();
     else if (w.view === 'live') w.renderScene(w.ctx, vw, vh);
   }
+  scheduleNextFrame(delayMs);
 }
 
 /* -------------------------------- Init -------------------------------- */
@@ -266,7 +362,7 @@ function bootPhotoBoothApp() {
   } else {
     startCamera();
   }
-  requestAnimationFrame(loop);
+  ensureRenderLoop();
 }
 
 const dlRoomId = new URLSearchParams(location.search).get('dl');

@@ -92,7 +92,7 @@ function updateDock() {
   const minPB = alivePB.filter((w) => w.minimized);
   const minUtils = utilApps.filter((a) => a.state.open && a.state.minimized);
   dockDivider.hidden = minPB.length === 0 && minUtils.length === 0;
-  dockMin.innerHTML = '';
+  dockMin.replaceChildren();
   if (typeof updateFillLight === 'function') updateFillLight();
   if (typeof syncCameraHardware === 'function') syncCameraHardware();
 
@@ -101,8 +101,17 @@ function updateDock() {
     btn.type = 'button';
     btn.className = 'dock-min-item';
     btn.setAttribute('aria-label', `Restore ${w.title}`);
-    btn.innerHTML = (w.minThumb ? `<img alt="" src="${w.minThumb}">` : '') +
-                    `<span class="dock-tip">${w.title.replace(/[<>&]/g, '')}</span>`;
+    if (w.minThumb) {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.src = w.minThumb;
+      btn.appendChild(img);
+    }
+    const tip = document.createElement('span');
+    tip.className = 'dock-tip';
+    tip.textContent = w.title;
+    btn.appendChild(tip);
     btn.addEventListener('click', () => w.restore());
     dockMin.appendChild(btn);
   }
@@ -121,11 +130,30 @@ function updateDock() {
 }
 
 /* ------------------------- Photo Booth Window Factory ------------------------- */
+let minThumbTmpCanvas = null;
+function captureMiniThumbDataUrl(srcCanvas) {
+  if (!srcCanvas || !srcCanvas.width || !srcCanvas.height) return '';
+  const tw = 160;
+  const th = Math.max(90, Math.round(tw * srcCanvas.height / srcCanvas.width));
+  if (!minThumbTmpCanvas) minThumbTmpCanvas = document.createElement('canvas');
+  if (minThumbTmpCanvas.width !== tw || minThumbTmpCanvas.height !== th) {
+    minThumbTmpCanvas.width = tw;
+    minThumbTmpCanvas.height = th;
+  }
+  const mctx = minThumbTmpCanvas.getContext('2d');
+  if (!mctx) return srcCanvas.toDataURL('image/jpeg', 0.55);
+  mctx.drawImage(srcCanvas, 0, 0, tw, th);
+  return minThumbTmpCanvas.toDataURL('image/jpeg', 0.62);
+}
+
 function createWindow(opts = {}) {
   const seq = ++winSeq;
   const frag = winTpl.content.cloneNode(true);
   const el = frag.firstElementChild;
   windowsEl.appendChild(el);
+  el.addEventListener('animationend', (e) => {
+    if (e.target === el && e.animationName === 'appear') el.classList.add('appeared');
+  });
 
   const $w = (s) => el.querySelector(s);
   const canvas = $w('.view');
@@ -204,18 +232,25 @@ function createWindow(opts = {}) {
   const maxW = () => Math.max(minW(), Math.min(innerWidth, widthForHeight(innerHeight)));
 
   function applyWin(mode) {
-    inst.WIN.w = clampN(inst.WIN.w, minW(), maxW());
-    const h = heightFor(inst.WIN.w);
-    inst.WIN.h = h;
     if (mode === 'fit') {
-      inst.WIN.x = clampN(inst.WIN.x, 0, Math.max(0, innerWidth - inst.WIN.w));
-      inst.WIN.y = clampN(inst.WIN.y, 0, Math.max(0, innerHeight - h));
-    } else if (mode === 'loose') {
-      inst.WIN.x = clampN(inst.WIN.x, 80 - inst.WIN.w, innerWidth - 80);
-      inst.WIN.y = clampN(inst.WIN.y, 0, innerHeight - 40);
+      const pad = winPad();
+      const maxFitW = Math.max(minW(), Math.min(innerWidth - pad * 2, widthForHeight(Math.max(180, innerHeight - dockReserveNow() - pad))));
+      inst.WIN.w = clampN(inst.WIN.w, minW(), maxFitW);
+      const h = heightFor(inst.WIN.w);
+      inst.WIN.h = h;
+      inst.WIN.x = clampN(inst.WIN.x, pad, Math.max(pad, innerWidth - inst.WIN.w - pad));
+      inst.WIN.y = clampN(inst.WIN.y, pad, Math.max(pad, innerHeight - dockReserveNow() - h));
+    } else {
+      inst.WIN.w = clampN(inst.WIN.w, minW(), maxW());
+      const h = heightFor(inst.WIN.w);
+      inst.WIN.h = h;
+      if (mode === 'loose') {
+        inst.WIN.x = clampN(inst.WIN.x, 80 - inst.WIN.w, innerWidth - 80);
+        inst.WIN.y = clampN(inst.WIN.y, 0, innerHeight - 40);
+      }
     }
     el.style.width = inst.WIN.w + 'px';
-    if (!inst.winFull) el.style.height = h + 'px';
+    if (!inst.winFull) el.style.height = inst.WIN.h + 'px';
     el.style.left = inst.WIN.x + 'px';
     el.style.top = inst.WIN.y + 'px';
   }
@@ -582,12 +617,23 @@ function createWindow(opts = {}) {
     const items = photoItems().filter((i) => i.winKey === inst.winKey);
     el.classList.toggle('lib-empty', items.length === 0);
     syncStripBtn(items.length);
-    libEl.innerHTML = '';
+    libEl.replaceChildren();
     for (const item of items) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'thumb' + (item.id === inst.selectedId ? ' active' : '') + (item._new ? ' new' : '');
-      b.innerHTML = `<img alt="" src="${thumbUrl(item)}">` + (item.type === 'video' ? '<span class="badge">MOV</span>' : '');
+      const img = document.createElement('img');
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.src = thumbUrl(item);
+      b.appendChild(img);
+      if (item.type === 'video') {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = 'MOV';
+        b.appendChild(badge);
+      }
       b.addEventListener('click', () => openItem(item.id));
       libEl.appendChild(b);
     }
@@ -608,6 +654,7 @@ function createWindow(opts = {}) {
     viewerEl.hidden = true;
     stage.classList.remove('viewing');
     inst.renderLibrary(false);
+    if (typeof ensureRenderLoop === 'function') ensureRenderLoop();
   };
 
   function openItem(id) {
@@ -671,6 +718,7 @@ function createWindow(opts = {}) {
       const pi = pageOf(inst.effect.id);
       inst.setFxPage(pi >= 0 ? pi : inst.fxPage, false);
     }
+    if (typeof ensureRenderLoop === 'function') ensureRenderLoop();
   };
 
   inst.onShutter = (e) => {
@@ -728,8 +776,11 @@ function createWindow(opts = {}) {
   titleInput.addEventListener('blur', commitTitle);
   titleInput.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter') titleInput.blur();
-    else if (e.key === 'Escape') { titleInput.value = committedTitle; titleInput.blur(); }
+    if (e.key === 'Enter') {
+      if (e.isComposing || e.keyCode === 229) return;
+      e.preventDefault();
+      titleInput.blur();
+    } else if (e.key === 'Escape') { titleInput.value = committedTitle; titleInput.blur(); }
   });
   applyTitle(inst.title);
 
@@ -760,7 +811,7 @@ function createWindow(opts = {}) {
   inst.minimize = () => {
     if (inst.minimized || inst.closing) return;
     if (inst.winFull) inst.toggleWinFull(false);
-    try { inst.minThumb = canvas.width ? canvas.toDataURL('image/jpeg', 0.55) : ''; } catch (_) { inst.minThumb = ''; }
+    try { inst.minThumb = captureMiniThumbDataUrl(canvas); } catch (_) { inst.minThumb = ''; }
     el.classList.add('minimizing');
     setTimeout(() => {
       if (inst.closing) return;
@@ -779,6 +830,7 @@ function createWindow(opts = {}) {
     applyWin('fit');
     focusElement(el, inst);
     updateDock();
+    if (typeof ensureRenderLoop === 'function') ensureRenderLoop();
   };
 
   inst.close = () => {
@@ -808,7 +860,7 @@ function createWindow(opts = {}) {
   closeBtn.addEventListener('click', () => inst.close());
 
   /* ---- Move & Resize ---- */
-  function startDrag(e, onMove) {
+  function startDrag(e, onMove, onEnd = null) {
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
     const sx = e.clientX, sy = e.clientY;
@@ -819,7 +871,7 @@ function createWindow(opts = {}) {
         if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) return;
         moved = true;
         inst.zoomPrev = null;
-        el.classList.add('dragging');
+        el.classList.add('appeared', 'dragging');
         document.body.classList.add('win-dragging');
       }
       onMove(dx, dy);
@@ -828,7 +880,10 @@ function createWindow(opts = {}) {
       target.removeEventListener('pointermove', move);
       target.removeEventListener('pointerup', up);
       target.removeEventListener('pointercancel', up);
+      target.removeEventListener('lostpointercapture', up);
       if (moved) {
+        if (onEnd) onEnd();
+        void el.offsetLeft;
         el.classList.remove('dragging');
         document.body.classList.remove('win-dragging');
       }
@@ -836,6 +891,7 @@ function createWindow(opts = {}) {
     target.addEventListener('pointermove', move);
     target.addEventListener('pointerup', up);
     target.addEventListener('pointercancel', up);
+    target.addEventListener('lostpointercapture', up);
   }
 
   ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach((dir) => {
@@ -894,7 +950,18 @@ function createWindow(opts = {}) {
       tapTrack = { id: e.pointerId, x: e.clientX, y: e.clientY };
     }
     const x0 = inst.WIN.x, y0 = inst.WIN.y;
-    startDrag(e, (dx, dy) => { inst.WIN.x = x0 + dx; inst.WIN.y = y0 + dy; applyWin('loose'); });
+    startDrag(
+      e,
+      (dx, dy) => {
+        inst.WIN.x = clampN(x0 + dx, 80 - inst.WIN.w, innerWidth - 80);
+        inst.WIN.y = clampN(y0 + dy, 0, innerHeight - 40);
+        el.style.transform = `translate3d(${inst.WIN.x - x0}px, ${inst.WIN.y - y0}px, 0)`;
+      },
+      () => {
+        el.style.transform = '';
+        applyWin('loose');
+      }
+    );
   });
 
   titlebar.addEventListener('pointermove', (e) => {
@@ -971,6 +1038,7 @@ function createWindow(opts = {}) {
   inst.renderLibrary(true);
   focusElement(el, inst);
   updateDock();
+  if (typeof ensureRenderLoop === 'function') ensureRenderLoop();
   return inst;
 }
 
@@ -1276,6 +1344,9 @@ function initDefaultWindows() {
 }
 
 function createUtilityApp({ el, state, title, dockClass, closeBtn, minBtn, defaultW, defaultH, onOpen, onClose, renderMinThumb }) {
+  el.addEventListener('animationend', (e) => {
+    if (e.target === el && e.animationName === 'appear') el.classList.add('appeared');
+  });
   el.querySelectorAll('.titlebar').forEach((titlebar) => {
     titlebar.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || e.target.closest('.light, button, a, input, select, textarea, [role="button"]')) return;
@@ -1284,24 +1355,38 @@ function createUtilityApp({ el, state, title, dockClass, closeBtn, minBtn, defau
       const sx = e.clientX, sy = e.clientY;
       const x0 = state.x, y0 = state.y;
       const w = el.offsetWidth;
-      el.classList.add('dragging');
-      document.body.classList.add('win-dragging');
+      let moved = false;
       const move = (ev) => {
-        state.x = clampN(x0 + ev.clientX - sx, 80 - w, innerWidth - 80);
-        state.y = clampN(y0 + ev.clientY - sy, 0, innerHeight - 40);
-        el.style.left = state.x + 'px';
-        el.style.top = state.y + 'px';
+        const nx = clampN(x0 + ev.clientX - sx, 80 - w, innerWidth - 80);
+        const ny = clampN(y0 + ev.clientY - sy, 0, innerHeight - 40);
+        if (!moved) {
+          if (Math.abs(ev.clientX - sx) <= 2 && Math.abs(ev.clientY - sy) <= 2) return;
+          moved = true;
+          el.classList.add('appeared', 'dragging');
+          document.body.classList.add('win-dragging');
+        }
+        state.x = nx;
+        state.y = ny;
+        el.style.transform = `translate3d(${nx - x0}px, ${ny - y0}px, 0)`;
       };
       const up = () => {
         titlebar.removeEventListener('pointermove', move);
         titlebar.removeEventListener('pointerup', up);
         titlebar.removeEventListener('pointercancel', up);
-        el.classList.remove('dragging');
-        document.body.classList.remove('win-dragging');
+        titlebar.removeEventListener('lostpointercapture', up);
+        if (moved) {
+          el.style.transform = '';
+          el.style.left = state.x + 'px';
+          el.style.top = state.y + 'px';
+          void el.offsetLeft;
+          el.classList.remove('dragging');
+          document.body.classList.remove('win-dragging');
+        }
       };
       titlebar.addEventListener('pointermove', move);
       titlebar.addEventListener('pointerup', up);
       titlebar.addEventListener('pointercancel', up);
+      titlebar.addEventListener('lostpointercapture', up);
     });
   });
 
@@ -1346,12 +1431,17 @@ function createUtilityApp({ el, state, title, dockClass, closeBtn, minBtn, defau
   const api = {
     el, state, title, dockClass,
     fitBounds,
-    renderMinThumb: renderMinThumb || ((btn) => { btn.innerHTML = `<span class="dock-tip">${title}</span>`; }),
+    renderMinThumb: renderMinThumb || ((btn) => {
+      const tip = document.createElement('span');
+      tip.className = 'dock-tip';
+      tip.textContent = title;
+      btn.replaceChildren(tip);
+    }),
     open() {
       if (!state.open) {
         state.open = true;
         state.minimized = false;
-        el.classList.remove('minimized', 'closing');
+        el.classList.remove('minimized', 'closing', 'appeared');
         el.hidden = false;
         fitBounds(!state.placed || isPhoneViewport());
         if (onOpen) onOpen();

@@ -408,9 +408,15 @@ function stopQrHostSession() {
   try { s.sig && s.sig.close(); } catch (_) {}
 }
 
+let qrModalPrevFocus = null;
 function closeQrModal() {
   stopQrHostSession();
   if (qrModalEl) qrModalEl.hidden = true;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  if (qrModalPrevFocus && qrModalPrevFocus.isConnected && typeof qrModalPrevFocus.focus === 'function') {
+    try { qrModalPrevFocus.focus({ preventScroll: true }); } catch (_) {}
+  }
+  qrModalPrevFocus = null;
 }
 
 async function waitDcDrain(dc) {
@@ -473,7 +479,10 @@ async function openQrTransferModal(items) {
     qrExpireBadgeEl.textContent = '03:00';
   }
   if (qrStatusEl) qrStatusEl.textContent = 'Preparing…';
+  qrModalPrevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   qrModalEl.hidden = false;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  qrCloseBtn?.focus({ preventScroll: true });
 
   const roomId = `rb-${randToken(5)}`;
   const rawKey = crypto.getRandomValues(new Uint8Array(32));
@@ -638,7 +647,7 @@ async function startQrReceiverView(roomId) {
   let activeCleanup = null;
   const connect = () => {
     if (activeCleanup) activeCleanup();
-    if (cardsEl) cardsEl.innerHTML = '';
+    if (cardsEl) cardsEl.replaceChildren();
     if (dlAllBtn) dlAllBtn.hidden = true;
     if (retryBtn) retryBtn.hidden = true;
     if (progWrap) progWrap.hidden = false;

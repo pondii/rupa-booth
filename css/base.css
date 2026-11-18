@@ -30,45 +30,586 @@
   --r-ctl: 7px;             /* push buttons / segmented control */
   --gap: 10px;
   --ng: 2;                  /* number of flex gaps that count toward window height */
-  --blue: #0a84ff;
   --spring: cubic-bezier(.34, 1.5, .64, 1);
   --ease: cubic-bezier(.2, .8, .2, 1);
+
+  /* Accent palette (overridable via Settings -> Theme) */
+  --accent: #0a84ff;
+  --accent-hover: #2193ff;
+  --accent-soft: rgba(10, 132, 255, .18);
+  --accent-border: rgba(10, 132, 255, .42);
+  --accent-glow: rgba(10, 132, 255, .36);
+  --accent-text: #ffffff;
+  --blue: var(--accent);
+
+  /* Default (Light) fallback tokens for browsers without light-dark() */
+  --text-1: #1d1d1f;
+  --text-2: rgba(29, 29, 31, .78);
+  --text-3: rgba(29, 29, 31, .56);
+  --text-muted-inactive: rgba(29, 29, 31, .44);
+  --canvas-bg: #eef0f5;
+  --win-bg: rgba(246, 247, 250, .82);
+  --win-bg-focused: rgba(255, 255, 255, .92);
+  --win-border: rgba(0, 0, 0, .11);
+  --win-border-focused: rgba(0, 0, 0, .16);
+  --win-inner-edge: rgba(255, 255, 255, .92);
+  --sidebar-bg: rgba(235, 237, 243, .62);
+  --main-bg: rgba(255, 255, 255, .42);
+  --card-bg: rgba(255, 255, 255, .74);
+  --card-bg-hover: rgba(255, 255, 255, .92);
+  --card-border: rgba(0, 0, 0, .09);
+  --card-border-hover: rgba(0, 0, 0, .18);
+  --row-sep: rgba(0, 0, 0, .075);
+  --ctl-bg: rgba(0, 0, 0, .065);
+  --ctl-hover: rgba(0, 0, 0, .11);
+  --ctl-active: rgba(0, 0, 0, .16);
+  --seg-bg: rgba(0, 0, 0, .075);
+  --seg-active: #ffffff;
+  --field-bg: rgba(0, 0, 0, .055);
+  --field-focus-bg: rgba(0, 0, 0, .08);
+  --modal-bg: rgba(248, 249, 252, .96);
+  --menu-bg: rgba(252, 252, 254, .98);
+  --backdrop-dim: rgba(15, 16, 22, .38);
+  --dock-bg: rgba(238, 240, 245, .78);
+  --dock-border: rgba(0, 0, 0, .11);
+  --dock-dot: rgba(0, 0, 0, .68);
+  --light-inactive: rgba(0, 0, 0, .18);
+  --light-inactive-edge: rgba(0, 0, 0, .14);
+  --sb-thumb: rgba(0, 0, 0, .24);
+  --sb-thumb-hover: rgba(0, 0, 0, .38);
+  --sb-thumb-active: rgba(0, 0, 0, .54);
+  --hud-bg: rgba(255, 255, 255, .86);
+  --hud-text: #1d1d1f;
+  --hud-border: rgba(0, 0, 0, .11);
+  --win-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .9),
+    inset 0 0 0 .5px rgba(0, 0, 0, .11),
+    0 18px 46px rgba(0, 0, 0, .14), 0 4px 12px rgba(0, 0, 0, .08);
+  --win-shadow-focused:
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    inset 0 0 0 .5px rgba(0, 0, 0, .15),
+    0 26px 64px rgba(0, 0, 0, .20), 0 6px 18px rgba(0, 0, 0, .11);
+  --modal-shadow: 0 26px 68px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .9);
+
+  color-scheme: light dark;
+  accent-color: var(--accent);
+
+  @media (prefers-color-scheme: dark) {
+    --text-1: #ffffff;
+    --text-2: rgba(255, 255, 255, .86);
+    --text-3: rgba(255, 255, 255, .56);
+    --text-muted-inactive: rgba(255, 255, 255, .45);
+    --canvas-bg: #0b0b0f;
+    --win-bg: rgba(28, 29, 34, .68);
+    --win-bg-focused: rgba(32, 33, 40, .74);
+    --win-border: rgba(255, 255, 255, .16);
+    --win-border-focused: rgba(255, 255, 255, .22);
+    --win-inner-edge: rgba(255, 255, 255, .24);
+    --sidebar-bg: rgba(255, 255, 255, .04);
+    --main-bg: rgba(255, 255, 255, .025);
+    --card-bg: rgba(255, 255, 255, .06);
+    --card-bg-hover: rgba(255, 255, 255, .11);
+    --card-border: rgba(255, 255, 255, .09);
+    --card-border-hover: rgba(255, 255, 255, .22);
+    --row-sep: rgba(255, 255, 255, .07);
+    --ctl-bg: rgba(255, 255, 255, .12);
+    --ctl-hover: rgba(255, 255, 255, .20);
+    --ctl-active: rgba(255, 255, 255, .28);
+    --seg-bg: rgba(255, 255, 255, .12);
+    --seg-active: rgba(255, 255, 255, .24);
+    --field-bg: rgba(0, 0, 0, .28);
+    --field-focus-bg: rgba(0, 0, 0, .36);
+    --modal-bg: rgba(28, 29, 36, .95);
+    --menu-bg: rgba(30, 31, 38, .98);
+    --backdrop-dim: rgba(8, 9, 14, .64);
+    --dock-bg: rgba(34, 35, 42, .68);
+    --dock-border: rgba(255, 255, 255, .16);
+    --dock-dot: rgba(255, 255, 255, .86);
+    --light-inactive: rgba(255, 255, 255, .22);
+    --light-inactive-edge: rgba(0, 0, 0, .2);
+    --sb-thumb: rgba(255, 255, 255, .22);
+    --sb-thumb-hover: rgba(255, 255, 255, .36);
+    --sb-thumb-active: rgba(255, 255, 255, .64);
+    --hud-bg: rgba(24, 25, 30, .78);
+    --hud-text: #ffffff;
+    --hud-border: rgba(255, 255, 255, .16);
+    --win-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .24),
+      inset 0 0 0 .5px rgba(255, 255, 255, .16),
+      0 24px 64px rgba(0, 0, 0, .38), 0 6px 18px rgba(0, 0, 0, .22);
+    --win-shadow-focused:
+      inset 0 1px 0 rgba(255, 255, 255, .32),
+      inset 0 0 0 .5px rgba(255, 255, 255, .22),
+      0 34px 86px rgba(0, 0, 0, .52), 0 8px 22px rgba(0, 0, 0, .28);
+    --modal-shadow: 0 28px 80px rgba(0, 0, 0, .68), inset 0 1px 0 rgba(255, 255, 255, .18);
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]),
+  &[data-theme="dark"] {
+    color-scheme: dark;
+    --text-1: #ffffff;
+    --text-2: rgba(255, 255, 255, .86);
+    --text-3: rgba(255, 255, 255, .56);
+    --text-muted-inactive: rgba(255, 255, 255, .45);
+    --canvas-bg: #0b0b0f;
+    --win-bg: rgba(28, 29, 34, .68);
+    --win-bg-focused: rgba(32, 33, 40, .74);
+    --win-border: rgba(255, 255, 255, .16);
+    --win-border-focused: rgba(255, 255, 255, .22);
+    --win-inner-edge: rgba(255, 255, 255, .24);
+    --sidebar-bg: rgba(255, 255, 255, .04);
+    --main-bg: rgba(255, 255, 255, .025);
+    --card-bg: rgba(255, 255, 255, .06);
+    --card-bg-hover: rgba(255, 255, 255, .11);
+    --card-border: rgba(255, 255, 255, .09);
+    --card-border-hover: rgba(255, 255, 255, .22);
+    --row-sep: rgba(255, 255, 255, .07);
+    --ctl-bg: rgba(255, 255, 255, .12);
+    --ctl-hover: rgba(255, 255, 255, .20);
+    --ctl-active: rgba(255, 255, 255, .28);
+    --seg-bg: rgba(255, 255, 255, .12);
+    --seg-active: rgba(255, 255, 255, .24);
+    --field-bg: rgba(0, 0, 0, .28);
+    --field-focus-bg: rgba(0, 0, 0, .36);
+    --modal-bg: rgba(28, 29, 36, .95);
+    --menu-bg: rgba(30, 31, 38, .98);
+    --backdrop-dim: rgba(8, 9, 14, .64);
+    --dock-bg: rgba(34, 35, 42, .68);
+    --dock-border: rgba(255, 255, 255, .16);
+    --dock-dot: rgba(255, 255, 255, .86);
+    --light-inactive: rgba(255, 255, 255, .22);
+    --light-inactive-edge: rgba(0, 0, 0, .2);
+    --sb-thumb: rgba(255, 255, 255, .22);
+    --sb-thumb-hover: rgba(255, 255, 255, .36);
+    --sb-thumb-active: rgba(255, 255, 255, .64);
+    --hud-bg: rgba(24, 25, 30, .78);
+    --hud-text: #ffffff;
+    --hud-border: rgba(255, 255, 255, .16);
+    --win-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .24),
+      inset 0 0 0 .5px rgba(255, 255, 255, .16),
+      0 24px 64px rgba(0, 0, 0, .38), 0 6px 18px rgba(0, 0, 0, .22);
+    --win-shadow-focused:
+      inset 0 1px 0 rgba(255, 255, 255, .32),
+      inset 0 0 0 .5px rgba(255, 255, 255, .22),
+      0 34px 86px rgba(0, 0, 0, .52), 0 8px 22px rgba(0, 0, 0, .28);
+    --modal-shadow: 0 28px 80px rgba(0, 0, 0, .68), inset 0 1px 0 rgba(255, 255, 255, .18);
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]),
+  &[data-theme="light"] {
+    color-scheme: light;
+    --text-1: #1d1d1f;
+    --text-2: rgba(29, 29, 31, .78);
+    --text-3: rgba(29, 29, 31, .56);
+    --text-muted-inactive: rgba(29, 29, 31, .44);
+    --canvas-bg: #eef0f5;
+    --win-bg: rgba(246, 247, 250, .82);
+    --win-bg-focused: rgba(255, 255, 255, .92);
+    --win-border: rgba(0, 0, 0, .11);
+    --win-border-focused: rgba(0, 0, 0, .16);
+    --win-inner-edge: rgba(255, 255, 255, .92);
+    --sidebar-bg: rgba(235, 237, 243, .62);
+    --main-bg: rgba(255, 255, 255, .42);
+    --card-bg: rgba(255, 255, 255, .74);
+    --card-bg-hover: rgba(255, 255, 255, .92);
+    --card-border: rgba(0, 0, 0, .09);
+    --card-border-hover: rgba(0, 0, 0, .18);
+    --row-sep: rgba(0, 0, 0, .075);
+    --ctl-bg: rgba(0, 0, 0, .065);
+    --ctl-hover: rgba(0, 0, 0, .11);
+    --ctl-active: rgba(0, 0, 0, .16);
+    --seg-bg: rgba(0, 0, 0, .075);
+    --seg-active: #ffffff;
+    --field-bg: rgba(0, 0, 0, .055);
+    --field-focus-bg: rgba(0, 0, 0, .08);
+    --modal-bg: rgba(248, 249, 252, .96);
+    --menu-bg: rgba(252, 252, 254, .98);
+    --backdrop-dim: rgba(15, 16, 22, .38);
+    --dock-bg: rgba(238, 240, 245, .78);
+    --dock-border: rgba(0, 0, 0, .11);
+    --dock-dot: rgba(0, 0, 0, .68);
+    --light-inactive: rgba(0, 0, 0, .18);
+    --light-inactive-edge: rgba(0, 0, 0, .14);
+    --sb-thumb: rgba(0, 0, 0, .24);
+    --sb-thumb-hover: rgba(0, 0, 0, .38);
+    --sb-thumb-active: rgba(0, 0, 0, .54);
+    --hud-bg: rgba(255, 255, 255, .86);
+    --hud-text: #1d1d1f;
+    --hud-border: rgba(0, 0, 0, .11);
+    --win-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .9),
+      inset 0 0 0 .5px rgba(0, 0, 0, .11),
+      0 18px 46px rgba(0, 0, 0, .14), 0 4px 12px rgba(0, 0, 0, .08);
+    --win-shadow-focused:
+      inset 0 1px 0 rgba(255, 255, 255, .95),
+      inset 0 0 0 .5px rgba(0, 0, 0, .15),
+      0 26px 64px rgba(0, 0, 0, .20), 0 6px 18px rgba(0, 0, 0, .11);
+    --modal-shadow: 0 26px 68px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .9);
+  }
 }
+
+@supports (color: light-dark(white, black)) {
+  :root {
+    --text-1: light-dark(#1d1d1f, #ffffff);
+    --text-2: light-dark(rgba(29, 29, 31, .78), rgba(255, 255, 255, .86));
+    --text-3: light-dark(rgba(29, 29, 31, .56), rgba(255, 255, 255, .56));
+    --text-muted-inactive: light-dark(rgba(29, 29, 31, .44), rgba(255, 255, 255, .45));
+    --canvas-bg: light-dark(#eef0f5, #0b0b0f);
+    --win-bg: light-dark(rgba(246, 247, 250, .82), rgba(28, 29, 34, .68));
+    --win-bg-focused: light-dark(rgba(255, 255, 255, .92), rgba(32, 33, 40, .74));
+    --win-border: light-dark(rgba(0, 0, 0, .11), rgba(255, 255, 255, .16));
+    --win-border-focused: light-dark(rgba(0, 0, 0, .16), rgba(255, 255, 255, .22));
+    --win-inner-edge: light-dark(rgba(255, 255, 255, .92), rgba(255, 255, 255, .24));
+    --sidebar-bg: light-dark(rgba(235, 237, 243, .62), rgba(255, 255, 255, .04));
+    --main-bg: light-dark(rgba(255, 255, 255, .42), rgba(255, 255, 255, .025));
+    --card-bg: light-dark(rgba(255, 255, 255, .74), rgba(255, 255, 255, .06));
+    --card-bg-hover: light-dark(rgba(255, 255, 255, .92), rgba(255, 255, 255, .11));
+    --card-border: light-dark(rgba(0, 0, 0, .09), rgba(255, 255, 255, .09));
+    --card-border-hover: light-dark(rgba(0, 0, 0, .18), rgba(255, 255, 255, .22));
+    --row-sep: light-dark(rgba(0, 0, 0, .075), rgba(255, 255, 255, .07));
+    --ctl-bg: light-dark(rgba(0, 0, 0, .065), rgba(255, 255, 255, .12));
+    --ctl-hover: light-dark(rgba(0, 0, 0, .11), rgba(255, 255, 255, .20));
+    --ctl-active: light-dark(rgba(0, 0, 0, .16), rgba(255, 255, 255, .28));
+    --seg-bg: light-dark(rgba(0, 0, 0, .075), rgba(255, 255, 255, .12));
+    --seg-active: light-dark(#ffffff, rgba(255, 255, 255, .24));
+    --field-bg: light-dark(rgba(0, 0, 0, .055), rgba(0, 0, 0, .28));
+    --field-focus-bg: light-dark(rgba(0, 0, 0, .08), rgba(0, 0, 0, .36));
+    --modal-bg: light-dark(rgba(248, 249, 252, .96), rgba(28, 29, 36, .95));
+    --menu-bg: light-dark(rgba(252, 252, 254, .98), rgba(30, 31, 38, .98));
+    --backdrop-dim: light-dark(rgba(15, 16, 22, .38), rgba(8, 9, 14, .64));
+    --dock-bg: light-dark(rgba(238, 240, 245, .78), rgba(34, 35, 42, .68));
+    --dock-border: light-dark(rgba(0, 0, 0, .11), rgba(255, 255, 255, .16));
+    --dock-dot: light-dark(rgba(0, 0, 0, .68), rgba(255, 255, 255, .86));
+    --light-inactive: light-dark(rgba(0, 0, 0, .18), rgba(255, 255, 255, .22));
+    --light-inactive-edge: light-dark(rgba(0, 0, 0, .14), rgba(0, 0, 0, .2));
+    --sb-thumb: light-dark(rgba(0, 0, 0, .24), rgba(255, 255, 255, .22));
+    --sb-thumb-hover: light-dark(rgba(0, 0, 0, .38), rgba(255, 255, 255, .36));
+    --sb-thumb-active: light-dark(rgba(0, 0, 0, .54), rgba(255, 255, 255, .64));
+    --hud-bg: light-dark(rgba(255, 255, 255, .86), rgba(24, 25, 30, .78));
+    --hud-text: light-dark(#1d1d1f, #ffffff);
+    --hud-border: light-dark(rgba(0, 0, 0, .11), rgba(255, 255, 255, .16));
+  }
+}
+
+:root[data-accent="purple"] {
+  --accent: #af52de; --accent-hover: #c36cf0; --accent-soft: rgba(175, 82, 222, .18); --accent-border: rgba(175, 82, 222, .45); --accent-glow: rgba(175, 82, 222, .36);
+}
+:root[data-accent="pink"] {
+  --accent: #ff2d55; --accent-hover: #ff4f70; --accent-soft: rgba(255, 45, 85, .18); --accent-border: rgba(255, 45, 85, .45); --accent-glow: rgba(255, 45, 85, .35);
+}
+:root[data-accent="orange"] {
+  --accent: #ff9500; --accent-hover: #ffa826; --accent-soft: rgba(255, 149, 0, .2); --accent-border: rgba(255, 149, 0, .48); --accent-glow: rgba(255, 149, 0, .36);
+}
+:root[data-accent="green"] {
+  --accent: #28cd41; --accent-hover: #42d959; --accent-soft: rgba(40, 205, 65, .18); --accent-border: rgba(40, 205, 65, .45); --accent-glow: rgba(40, 205, 65, .34);
+}
+:root[data-accent="graphite"] {
+  --accent: #6e6e73; --accent-hover: #838388; --accent-soft: rgba(110, 110, 115, .2); --accent-border: rgba(110, 110, 115, .45); --accent-glow: rgba(110, 110, 115, .3);
+}
+
+/* ---------- Custom Theme: Retro Pop (Neo-Brutalism) ---------- */
+:root[data-skin="retro-pop"],
+:root[data-skin="retro-pop"][data-theme],
+:root[data-skin="retro-pop"]:has(> head > meta[name="color-scheme"]) {
+  color-scheme: light;
+  --rp-ink: #18181b;
+  --rp-teal: #1d7e75;
+  --rp-cream: #f5f2e4;
+  --rp-cream-hi: #faf7ec;
+  --rp-cream-dim: #ebe5ce;
+  --rp-pink: #ec5eb0;
+  --rp-yellow: #f2da5e;
+  --rp-blue: #2563eb;
+  --rp-red: #e5484d;
+
+  --text-1: var(--rp-ink);
+  --text-2: #27272a;
+  --text-3: #52525b;
+  --text-muted-inactive: rgba(24, 24, 27, .48);
+  --canvas-bg: var(--rp-teal);
+  --win-bg: var(--rp-cream);
+  --win-bg-focused: var(--rp-cream-hi);
+  --win-border: var(--rp-ink);
+  --win-border-focused: var(--rp-ink);
+  --win-inner-edge: #ffffff;
+  --sidebar-bg: var(--rp-cream-dim);
+  --main-bg: var(--rp-cream-hi);
+  --card-bg: #fffdf5;
+  --card-bg-hover: #fff7cf;
+  --card-border: var(--rp-ink);
+  --card-border-hover: var(--rp-ink);
+  --row-sep: rgba(24, 24, 27, .22);
+  --ctl-bg: #ebe5ce;
+  --ctl-hover: var(--rp-yellow);
+  --ctl-active: var(--rp-pink);
+  --seg-bg: #e4dec4;
+  --seg-active: #fffdf5;
+  --field-bg: #fffdf5;
+  --field-focus-bg: #ffffff;
+  --modal-bg: var(--rp-cream-hi);
+  --menu-bg: var(--rp-cream-hi);
+  --backdrop-dim: rgba(17, 68, 63, .62);
+  --dock-bg: var(--rp-cream-hi);
+  --dock-border: var(--rp-ink);
+  --dock-dot: var(--rp-ink);
+  --light-inactive: #dcd6be;
+  --light-inactive-edge: var(--rp-ink);
+  --sb-thumb: rgba(24, 24, 27, .35);
+  --sb-thumb-hover: rgba(24, 24, 27, .55);
+  --sb-thumb-active: var(--rp-ink);
+  --hud-bg: var(--rp-cream-hi);
+  --hud-text: var(--rp-ink);
+  --hud-border: var(--rp-ink);
+
+  --win-shadow:
+    4px 4px 0 0 var(--rp-pink),
+    4px 4px 0 2px var(--rp-ink),
+    8px 8px 0 0 var(--rp-yellow),
+    8px 8px 0 2px var(--rp-ink);
+  --win-shadow-focused:
+    4px 4px 0 0 var(--rp-pink),
+    4px 4px 0 2px var(--rp-ink),
+    8px 8px 0 0 var(--rp-yellow),
+    8px 8px 0 2px var(--rp-ink);
+  --modal-shadow:
+    4px 4px 0 0 var(--rp-pink),
+    4px 4px 0 2px var(--rp-ink),
+    8px 8px 0 0 var(--rp-yellow),
+    8px 8px 0 2px var(--rp-ink);
+  --dock-shadow:
+    4px 4px 0 0 var(--rp-pink),
+    4px 4px 0 2px var(--rp-ink),
+    8px 8px 0 0 var(--rp-yellow),
+    8px 8px 0 2px var(--rp-ink);
+}
+:root[data-skin="retro-pop"]:not([data-accent]),
+:root[data-skin="retro-pop"]:not([data-accent]):has(> head > meta[name="color-scheme"]) {
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #fde2f1;
+  --accent-border: #18181b;
+  --accent-glow: rgba(24, 24, 27, .24);
+}
+:root[data-skin="retro-pop"] :where(a:any-link, button, input, select, textarea, [tabindex="0"]):focus-visible {
+  outline: 2.5px solid var(--rp-ink);
+  outline-offset: 2px;
+}
+:root[data-skin="retro-pop"] #app:not([data-custom-bg="1"]) {
+  background-color: var(--rp-teal);
+  background-image:
+    linear-gradient(to right, rgba(9, 44, 41, .42) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(9, 44, 41, .42) 1px, transparent 1px);
+  background-size: 38px 38px;
+  background-repeat: repeat;
+  background-position: 0 0;
+}
+:root[data-skin="retro-pop"] .light {
+  box-shadow: inset 0 0 0 1.5px var(--rp-ink), 1px 1px 0 var(--rp-ink);
+}
+:root[data-skin="retro-pop"] .light.close { background: var(--rp-red); }
+:root[data-skin="retro-pop"] .light.min   { background: var(--rp-blue); }
+:root[data-skin="retro-pop"] .light.max   { background: var(--rp-yellow); }
+:root[data-skin="retro-pop"] .window:not(.focused) .lights:not(:hover) .light {
+  background: var(--light-inactive);
+  box-shadow: inset 0 0 0 1.5px var(--rp-ink);
+}
+:root[data-skin="retro-pop"] .light::before,
+:root[data-skin="retro-pop"] .light::after {
+  --glyph: var(--rp-ink);
+}
+
+/* ---------- Custom Theme: Sweet 98 (DEAR OS Pastel Win98) ---------- */
+:root[data-skin="sweet-98"],
+:root[data-skin="sweet-98"][data-theme],
+:root[data-skin="sweet-98"]:has(> head > meta[name="color-scheme"]) {
+  color-scheme: light;
+  --s98-ink: #2e2d34;
+  --s98-bg: #82a3c6;
+  --s98-cream: #e4ded3;
+  --s98-cream-hi: #faf6ec;
+  --s98-cream-dim: #d6cfc3;
+  --s98-cream-lt: #fbf7ee;
+  --s98-bevel-dk: #8f8980;
+  --s98-navy: #2b468b;
+  --s98-navy-2: #5b7fc5;
+  --s98-pink: #e89ab0;
+  --s98-pink-dk: #d4708f;
+  --s98-bevel-out: inset 1.5px 1.5px 0 #fbf7ee, inset -1.5px -1.5px 0 #8f8980, 0 0 0 1px #2e2d34;
+  --s98-bevel-in: inset 1.5px 1.5px 0 #8f8980, inset -1.5px -1.5px 0 #fbf7ee, 0 0 0 1px #545058;
+
+  --text-1: #2e2d34;
+  --text-2: #3d3b45;
+  --text-3: #66616e;
+  --text-muted-inactive: #5e5a64;
+  --canvas-bg: var(--s98-bg);
+  --win-bg: var(--s98-cream);
+  --win-bg-focused: var(--s98-cream);
+  --win-border: var(--s98-ink);
+  --win-border-focused: var(--s98-ink);
+  --win-inner-edge: var(--s98-cream-lt);
+  --sidebar-bg: var(--s98-cream-dim);
+  --main-bg: var(--s98-cream);
+  --card-bg: var(--s98-cream-hi);
+  --card-bg-hover: #fff9fb;
+  --card-border: var(--s98-ink);
+  --card-border-hover: var(--s98-ink);
+  --row-sep: rgba(46, 45, 52, .22);
+  --ctl-bg: #d9d2c6;
+  --ctl-hover: #f4d6df;
+  --ctl-active: var(--s98-pink);
+  --seg-bg: #d6cfc3;
+  --seg-active: var(--s98-cream-hi);
+  --field-bg: var(--s98-cream-hi);
+  --field-focus-bg: #ffffff;
+  --modal-bg: var(--s98-cream);
+  --menu-bg: var(--s98-cream);
+  --backdrop-dim: rgba(43, 70, 139, .36);
+  --dock-bg: var(--s98-cream);
+  --dock-border: var(--s98-ink);
+  --dock-dot: var(--s98-ink);
+  --light-inactive: #cbc4b8;
+  --light-inactive-edge: var(--s98-ink);
+  --sb-thumb: #9e978d;
+  --sb-thumb-hover: #7d766d;
+  --sb-thumb-active: var(--s98-navy);
+  --hud-bg: var(--s98-cream-hi);
+  --hud-text: var(--s98-ink);
+  --hud-border: var(--s98-ink);
+
+  --win-shadow:
+    inset 2px 2px 0 #fbf7ee,
+    inset -2px -2px 0 #8f8980,
+    0 0 0 1.5px #2e2d34,
+    4px 4px 0 rgba(46, 45, 52, .22);
+  --win-shadow-focused:
+    inset 2px 2px 0 #fbf7ee,
+    inset -2px -2px 0 #8f8980,
+    0 0 0 1.5px #2e2d34,
+    5px 5px 0 rgba(43, 70, 139, .26);
+  --modal-shadow:
+    inset 2px 2px 0 #fbf7ee,
+    inset -2px -2px 0 #8f8980,
+    0 0 0 1.5px #2e2d34,
+    6px 6px 0 rgba(46, 45, 52, .26);
+  --dock-shadow:
+    inset 2px 2px 0 #fbf7ee,
+    inset -2px -2px 0 #8f8980,
+    0 0 0 1.5px #2e2d34,
+    4px 4px 0 rgba(46, 45, 52, .22);
+}
+:root[data-skin="sweet-98"]:not([data-accent]),
+:root[data-skin="sweet-98"]:not([data-accent]):has(> head > meta[name="color-scheme"]) {
+  --accent: #2b468b;
+  --accent-hover: #213770;
+  --accent-soft: #f6dde5;
+  --accent-border: #2e2d34;
+  --accent-glow: rgba(43, 70, 139, .22);
+}
+:root[data-skin="sweet-98"] :where(a:any-link, button, input, select, textarea, [tabindex="0"]):focus-visible {
+  outline: 1.5px dotted var(--s98-ink);
+  outline-offset: 2px;
+}
+:root[data-skin="sweet-98"] #app:not([data-custom-bg="1"]) {
+  background-color: var(--s98-bg);
+  background-image:
+    linear-gradient(to right, rgba(43, 70, 139, .10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(43, 70, 139, .10) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-repeat: repeat;
+  background-position: 0 0;
+}
+:root[data-skin="sweet-98"] .lights { gap: 4px; }
+:root[data-skin="sweet-98"] .light {
+  width: 15px; height: 14px; border-radius: 2px;
+  background: var(--s98-cream);
+  border: 1px solid var(--s98-ink);
+  box-shadow: inset 1.5px 1.5px 0 var(--s98-cream-lt), inset -1.5px -1.5px 0 var(--s98-bevel-dk);
+}
+:root[data-skin="sweet-98"] .light:hover { transform: none; filter: none; background: #f2dce3; }
+:root[data-skin="sweet-98"] .light:active {
+  transform: none;
+  box-shadow: inset 1.5px 1.5px 0 var(--s98-bevel-dk), inset -1.5px -1.5px 0 var(--s98-cream-lt);
+}
+:root[data-skin="sweet-98"] .light.close { background: #f3cdd8; }
+:root[data-skin="sweet-98"] .window:not(.focused) .lights:not(:hover) .light {
+  background: var(--s98-cream);
+  box-shadow: inset 1.5px 1.5px 0 var(--s98-cream-lt), inset -1.5px -1.5px 0 var(--s98-bevel-dk);
+}
+:root[data-skin="sweet-98"] .light::before,
+:root[data-skin="sweet-98"] .light::after {
+  --glyph: var(--s98-ink);
+  opacity: .92;
+  width: 7px;
+  height: 1.5px;
+  border-radius: 0;
+}
+:root[data-skin="sweet-98"] .light.min::before { top: 72%; width: 7px; }
+:root[data-skin="sweet-98"] .light.max::before {
+  width: 7px; height: 6.5px;
+  background: transparent;
+  border: 1.4px solid var(--s98-ink);
+  border-top-width: 2.2px;
+}
+:root[data-skin="sweet-98"] .light.max::after { display: none; }
 
 html, body {
   height: 100%;
-  background: #0b0b0f;
-  color: #fff;
+  background: var(--canvas-bg);
+  color: var(--text-1);
   font-family: var(--font-sans);
   font-feature-settings: "cv05" 1;
   overflow: hidden;
+  overflow-wrap: break-word;
   touch-action: manipulation;
   -webkit-user-select: none; user-select: none;
   -webkit-font-smoothing: antialiased;
 }
+:where(a, code) { overflow-wrap: anywhere; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --win-bg: rgba(34, 35, 42, .94);
+    --win-bg-focused: rgba(38, 39, 46, .97);
+    --dock-bg: rgba(40, 41, 48, .92);
+    --modal-bg: rgba(30, 31, 37, .97);
+    --menu-bg: rgba(36, 37, 44, .98);
+  }
+  :root[data-theme="light"] {
+    --win-bg: rgba(244, 245, 248, .95);
+    --win-bg-focused: rgba(252, 253, 255, .98);
+    --dock-bg: rgba(242, 244, 248, .94);
+    --modal-bg: rgba(248, 249, 252, .98);
+    --menu-bg: rgba(250, 251, 254, .98);
+  }
+}
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+:where(a:any-link, button, input, select, textarea, [tabindex="0"]):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.title-input:focus-visible { outline: none; }
 
 /* ---------- Unified macOS Scrollbars ---------- */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: transparent; margin: 4px 0; }
 *::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(255, 255, 255, .22);
+  background: var(--sb-thumb);
   border: 3px solid transparent;
   background-clip: content-box;
 }
 *:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .36);
+  background: var(--sb-thumb-hover);
   border: 2.5px solid transparent;
   background-clip: content-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, .52);
+  background: var(--sb-thumb-active);
   border: 2px solid transparent;
   background-clip: content-box;
 }
 *::-webkit-scrollbar-thumb:active {
-  background: rgba(255, 255, 255, .68);
+  background: var(--sb-thumb-active);
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -77,7 +618,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 @supports not selector(::-webkit-scrollbar) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, .32) transparent;
+    scrollbar-color: var(--sb-thumb-hover) transparent;
   }
 }
 
@@ -107,8 +648,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .light.min   { background: #febc2e; }
 .light.max   { background: #28c840; }
 .window:not(.focused) .lights:not(:hover) .light {
-  background: rgba(255,255,255,.22);
-  box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2);
+  background: var(--light-inactive);
+  box-shadow: inset 0 0 0 .5px var(--light-inactive-edge);
 }
 .light:hover { filter: brightness(1.08); transform: scale(1.12); }
 .light:active { transform: scale(.88); filter: brightness(.85); }
@@ -126,20 +667,20 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .max::after    { transform: translate(-50%, -50%) rotate(90deg); }
 
 .light.disabled {
-  background: rgba(255,255,255,.16) !important;
-  box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2) !important;
+  background: var(--light-inactive) !important;
+  box-shadow: inset 0 0 0 .5px var(--light-inactive-edge) !important;
   cursor: default; pointer-events: none;
 }
 
 .title-input {
   box-sizing: content-box; field-sizing: content; width: 16ch; max-width: 100%; padding: 2px 6px; border: 0; outline: 0; border-radius: 7px;
-  background: transparent; color: rgba(255,255,255,.86); text-align: center;
+  background: transparent; color: var(--text-1); text-align: center;
   font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.4; text-overflow: ellipsis;
   -webkit-user-select: text; user-select: text; cursor: text; transition: background .2s, color .2s;
 }
-.window:not(.focused) .title-input { color: rgba(255,255,255,.45); }
-.title-input:hover { background: rgba(255,255,255,.1); }
-.title-input:focus { background: rgba(255,255,255,.18); color: #fff; box-shadow: 0 0 0 2px rgba(10,132,255,.7); }
+.window:not(.focused) .title-input { color: var(--text-muted-inactive); }
+.title-input:hover { background: var(--ctl-bg); }
+.title-input:focus { background: var(--ctl-hover); color: var(--text-1); box-shadow: 0 0 0 2px var(--accent); }
 
 /* ---------- Window resize handles ---------- */
 .rz { position: absolute; z-index: 20; touch-action: none; }

@@ -121,7 +121,11 @@ function stopCamera() {
       video.srcObject = null;
     }
   } catch (_) {}
-  if (typeof AR !== 'undefined') AR.face = null;
+  lastUploadedVideoTime = -1;
+  if (typeof AR !== 'undefined') {
+    AR.face = null;
+    if (Array.isArray(AR.faces)) AR.faces.length = 0;
+  }
 }
 
 function needsHardwareCamera() {
@@ -203,11 +207,13 @@ async function startCamera(forcePrompt = false) {
         camStream.getTracks().forEach((t) => t.stop());
       }
       camStream = nextStream;
+      lastUploadedVideoTime = -1;
       video.srcObject = camStream;
       await video.play();
       permState.camera = 'granted';
       setCameraMessage(null);
       notifyPermissionsChanged();
+      if (typeof ensureRenderLoop === 'function') ensureRenderLoop();
       return 'granted';
     } catch (err) {
       console.error(err);
@@ -440,6 +446,7 @@ void main() {
 
 const FX = { ok: false, gl: null, canvas: null, u: {} };
 const T0 = performance.now();
+let lastUploadedVideoTime = -1;
 
 function initFX() {
   try {
@@ -494,19 +501,24 @@ function uploadFrame() {
   if (!FX.ok || video.readyState < 2 || !video.videoWidth) return;
   const { gl, canvas: c } = FX;
   const vw = video.videoWidth, vh = video.videoHeight;
-  if (c.width !== vw || c.height !== vh) {
+  const resized = c.width !== vw || c.height !== vh;
+  if (resized) {
     c.width = vw; c.height = vh;
     gl.uniform2f(FX.u.texel, 1 / vw, 1 / vh);
   }
+  const vt = video.currentTime;
+  if (!resized && vt === lastUploadedVideoTime) return;
   try {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+    lastUploadedVideoTime = vt;
   } catch (e) { /* frame not ready yet */ }
 }
 
 function renderEffect(c, x, y, w, h, effect, isTile = false) {
   w = Math.round(w); h = Math.round(h);
   const isAr = effect && effect.fx >= 100;
-  if (!FX.ok || w > FX.canvas.width || h > FX.canvas.height) {
+  // Normal (fx 0) and AR base layers have identical pixel output to a direct mirrored 2D drawImage, avoiding WebGL readback stalls.
+  if (!FX.ok || !effect || effect.fx === 0 || isAr || w > FX.canvas.width || h > FX.canvas.height) {
     c.save(); c.translate(x + w, y); c.scale(-1, 1); c.drawImage(video, 0, 0, w, h); c.restore();
     if (isAr && typeof drawArOverlay === 'function') drawArOverlay(c, x, y, w, h, effect, isTile);
     return;
@@ -514,11 +526,10 @@ function renderEffect(c, x, y, w, h, effect, isTile = false) {
   const gl = FX.gl;
   gl.viewport(0, 0, w, h);
   gl.uniform2f(FX.u.res, w, h);
-  gl.uniform1i(FX.u.fx, isAr ? 0 : effect.fx);
+  gl.uniform1i(FX.u.fx, effect.fx);
   gl.uniform1f(FX.u.time, (performance.now() - T0) / 1000);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   c.drawImage(FX.canvas, 0, FX.canvas.height - h, w, h, x, y, w, h);
-  if (isAr && typeof drawArOverlay === 'function') drawArOverlay(c, x, y, w, h, effect, isTile);
 }
 
 /* ------------------------------ Sound & Utils ------------------------------ */
@@ -1107,8 +1118,13 @@ let emergencyResetOverlayEl = null;
 function closeEmergencyResetModal() {
   if (!emergencyResetOverlayEl) return false;
   const cb = emergencyResetOverlayEl._onCancel;
+  const prevFocus = emergencyResetOverlayEl._prevFocus;
   emergencyResetOverlayEl.remove();
   emergencyResetOverlayEl = null;
+  if (typeof syncModalInert === 'function') syncModalInert();
+  if (prevFocus && prevFocus.isConnected && typeof prevFocus.focus === 'function') {
+    try { prevFocus.focus({ preventScroll: true }); } catch (_) {}
+  }
   if (typeof cb === 'function') cb();
   return true;
 }
@@ -1178,7 +1194,30 @@ function showEmergencyResetModal(opts = {}) {
   });
 
   emergencyResetOverlayEl = overlay;
+  overlay._prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   document.body.appendChild(overlay);
-  confirmBtn.focus();
+  if (typeof syncModalInert === 'function') syncModalInert();
+  cancelBtn.focus();
 }
+
+/** Lock background interactivity and assistive tree while a top modal overlay is open. */
+function syncModalInert() {
+  const appEl = $('#app');
+  const welcomeEl = $('#welcomeModal');
+  const qrEl = $('#qrModal');
+  const qlEl = $('#quickLook');
+  const welcomeOpen = Boolean(welcomeEl && !welcomeEl.hidden);
+  const qrOpen = Boolean(qrEl && !qrEl.hidden);
+  const qlOpen = Boolean(qlEl && !qlEl.hidden);
+  const resetOpen = Boolean(emergencyResetOverlayEl);
+  const anyModal = welcomeOpen || qrOpen || qlOpen || resetOpen;
+  if (appEl) {
+    appEl.inert = anyModal;
+    if (anyModal) appEl.setAttribute('aria-hidden', 'true');
+    else appEl.removeAttribute('aria-hidden');
+  }
+  if (qlEl) qlEl.inert = qrOpen || welcomeOpen || resetOpen;
+  if (qrEl) qrEl.inert = welcomeOpen || resetOpen;
+}
+window.syncModalInert = syncModalInert;
 
